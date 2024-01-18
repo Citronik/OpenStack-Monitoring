@@ -38,6 +38,10 @@ services:
       - grafana:/var/lib/grafana
     networks:
       - loki
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-gateway:80/loki/api/v1/push"
 
   promtail:
     image: grafana/promtail:2.9.2
@@ -59,6 +63,10 @@ services:
       - "3100"
     networks:
       - loki
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-gateway:80/loki/api/v1/push"
 
   loki-read:
     image: *lokiImage
@@ -83,6 +91,10 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-gateway:80/loki/api/v1/push"
 
   loki-write:
     image: *lokiImage
@@ -106,6 +118,10 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-gateway:80/loki/api/v1/push"
 
   loki-backend:
     image: *lokiImage
@@ -129,6 +145,10 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-gateway:80/loki/api/v1/push"
 
   # alertmanager to enable receiving alerts
 #  alertmanager:
