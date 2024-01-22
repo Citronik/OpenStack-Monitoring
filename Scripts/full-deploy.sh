@@ -156,7 +156,19 @@ check_Vault_Dep() {
 
 }
 
+wait_for_vault() {
+	STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
+	STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
+	while [[ $STATE == *"blocked"* && $STATUS == *"idle"* ]]; do
+		echo "Waiting for vault to be ready..."
+		sleep 5
+		STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
+		STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
+	done
+}
+
 initialize_vault() {
+	wait_for_vault
 	VAULT_IP=$(juju status | grep vault/ | awk -F ' ' '{print $5}')
 	VAULT_PORT=$(juju status | grep vault/ | awk -F ' ' '{print $6}' | awk -F '/' '{print $1}')
 	VAULT_KEYS_FILE="$SCRIPT_BASE_PATH/vaultKeys.txt"
@@ -202,8 +214,10 @@ deploy_The_Charms() {
 	STATUS=$(juju models)
 	#juju add-model $MODEL_NAME
 	#juju grant $JUJU_USER admin $MODEL_NAME
+	juju switch admin/upgrade-test
 	juju deploy $SCRIPT_BASE_PATH/$CHARMS_FILE
 	echo "Waiting for charms to be ready..."
+	sleep 60
 }
 
 echo "Starting OpenStack deployment..."
@@ -224,14 +238,7 @@ if [$VALUT_INIT == "true"]; then
 fi
 
 deploy_The_Charms $@
-STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
-STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
-while [[ $STATE == *"blocked"* && $STATUS == *"idle"* ]]; do
-	echo "Waiting for vault to be ready..."
-	sleep 5
-	STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
-	STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
-done
+
 initialize_vault $@
 
 echo "OpenStack deployment completed succesfully! :)"
