@@ -9,7 +9,7 @@ MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 MAAS_PORT="5240"
 MAAS_URL="http://$MAAS_IP:$MAAS_PORT/MAAS"
-VAULT_GEN_KEY="true"
+VAULT_GEN_KEY="false"
 VAULT_KEY_NUM="5"
 VAULT_KEY_THRESH="3"
 
@@ -63,7 +63,7 @@ check_For_Other() {
 
 check_For_Dependencies() {
 	echo "Checking for dependencies..."
-	if [ "$#" -ge 1 ]; then
+	if [ "$#" -le 1 ]; then
 		echo "Usage: $0 <charms.yaml>"
 		exit 1
 	fi
@@ -145,7 +145,7 @@ check_Vault_Dep() {
 		echo "Vault is not installed. Please install Vault before running this script."
 		exit 1
 	fi
-	if $VAULT_KEY_THRESH > $VAULT_KEY_NUM; then
+	if $VAULT_KEY_THRESH -ge $VAULT_KEY_NUM; then
 		echo "Threshold is bigger than the number of keys. Please change the threshold or the number of keys."
 		exit 1
 	fi
@@ -161,28 +161,27 @@ initialize_vault() {
 	VAULT_KEYS_FILE_BKP="$SCRIPT_BASE_PATH/vaultKeys.txt.bkp"
 	VAULT_TOKEN_FILE="$SCRIPT_BASE_PATH/vaultToken.txt"
 	keyArray=()
-	#lineArray=()
-	echo " " > $VAULT_KEYS_FILE
 	echo " " > $VAULT_TOKEN_FILE
-	echo " " > $VAULT_KEYS_FILE_BKP
 	check_Vault_Dep
 	echo "Initializing vault..."
 	export VAULT_ADDR="http://$VAULT_IP:$VAULT_PORT"
 
 	if [ $VAULT_GEN_KEY == "true" ]; then
 		echo "Generating vault keys..."
+		echo " " > $VAULT_KEYS_FILE
+		echo " " > $VAULT_KEYS_FILE_BKP
+
 		vault operator init -key-shares=$VAULT_KEY_NUM -key-threshold=$VAULT_KEY_THRESH > $VAULT_KEYS_FILE
 	fi
 
 	for i in $(seq 1 $VAULT_KEY_THRESH); do
+		echo "Unsealing vault key num: $i..."
 		line=$(sed "${i}q;d" $VAULT_KEYS_FILE)
-		#lineArray+=($line)
 		keyArray[i]=$(echo $line | awk -F ' ' '{print $4}')
 		vault operator unseal ${keyArray[i]}
 	done
 
-	VAULT_TOKEN=$(sed "$((VAULT_KEY_NUM+3))q;d" $VAULT_KEYS_FILE | awk -F ' ' '{print $4}')
-	export VAULT_TOKEN
+	export VAULT_TOKEN=$(sed "$((VAULT_KEY_NUM+3))q;d" $VAULT_KEYS_FILE | awk -F ' ' '{print $4}') 
 	vault token create -ttl=10m > $VAULT_TOKEN_FILE
 
 	token=$(cat $VAULT_TOKEN_FILE | grep "token " | awk -F ' ' '{print $2}')
@@ -212,10 +211,10 @@ parse_attributes $@
 
 debug_print
 
-# if VALUT_INIT == "true"; then
-# 	initialize_vault $@
-# 	exit 0
-# fi
+if $VALUT_INIT == "true"; then
+	initialize_vault $@
+	exit 0
+fi
 #login_To_Maas $@
 
 
