@@ -5,6 +5,7 @@ USER=$(whoami)
 SCRIPT_BASE_PATH=$(pwd)
 CHARMS_FILE="bundleKISprod-cephWEB.yaml"
 MAAS_LOGIN="student"
+JUJU_USER="test-student"
 MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 MAAS_PORT="5240"
@@ -188,15 +189,22 @@ initialize_vault() {
 	
 	juju run-action --wait vault/leader authorize-charm token=$token
 	juju run-action --wait vault/leader generate-root-ca
-
+	
 	juju status | grep vault
 }
 
 deploy_The_Charms() {
-	maas $MAAS_LOGIN discoveries clear all=True
+	TMP_FILE="$SCRIPT_BASE_PATH/tmp.txt"
+	maas $MAAS_LOGIN discoveries clear all=True > $TMP_FILE
+	if [[ ! $MAAS_STATUS == *"Success"* ]]; then
+		echo "MAAS discoveries clear failed. Trying to login to MAAS..."
+		login_To_Maas $@
+		exit 1
+	fi
 	juju add-model $MODEL_NAME
-	juju grant $ admin $MODEL_NAME
-	juju deploy $SCRIPT_BASE_PATH/bundleKISprod-cephWEB.yaml
+	STATUS=$(juju models)
+	juju grant $JUJU_USER admin $MODEL_NAME
+	juju deploy $SCRIPT_BASE_PATH/$CHARMS_FILE
 }
 
 echo "Starting OpenStack deployment..."
@@ -215,9 +223,17 @@ if $VALUT_INIT == "true"; then
 	initialize_vault $@
 	exit 0
 fi
-#login_To_Maas $@
 
-
+deploy_The_Charms $@
+STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
+STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
+while [[ $STATE == *"blocked"* && $STATUS == *"idle"*]]; do
+	echo "Waiting for vault to be ready..."
+	sleep 5
+	STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
+	STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
+done
+initialize_vault $@
 
 echo "OpenStack deployment completed succesfully! :)"
 exit 0
