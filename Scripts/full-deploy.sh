@@ -22,6 +22,9 @@ debug_print() {
 	echo $MAAS_LOGIN
 	echo $MAAS_API_KEY
 	echo $MAAS_URL
+	echo $VAULT_GEN_KEY
+	echo $VAULT_KEY_NUM
+	echo $VAULT_KEY_THRESH
 	echo "[------------------------------------------------]"
 }
 
@@ -131,10 +134,6 @@ parse_attributes() {
 		esac
 	done
 	echo "Attribute parsing completed succesfully! :)"
-	if VALUT_INIT == "true"; then
-		initialize_vault $@
-		exit 0
-	fi
 }
 
 login_To_Maas() {
@@ -212,6 +211,11 @@ debug_print
 parse_attributes $@
 
 debug_print
+
+# if VALUT_INIT == "true"; then
+# 	initialize_vault $@
+# 	exit 0
+# fi
 #login_To_Maas $@
 
 
