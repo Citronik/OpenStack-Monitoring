@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_NAME="test"
+MODEL_NAME="upgrade-test"
 USER=$(whoami)
 SCRIPT_BASE_PATH=$(pwd)
 CHARMS_FILE="bundleKISprod-cephWEB.yaml"
@@ -10,7 +10,7 @@ MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 MAAS_PORT="5240"
 MAAS_URL="http://$MAAS_IP:$MAAS_PORT/MAAS"
-$VALUT_INIT="false"
+VALUT_INIT="false"
 VAULT_GEN_KEY="false"
 VAULT_KEY_NUM="5"
 VAULT_KEY_THRESH="3"
@@ -195,12 +195,15 @@ initialize_vault() {
 }
 
 deploy_The_Charms() {
+
 	login_To_Maas $@
 	maas $MAAS_LOGIN discoveries clear all=True
-	juju add-model $MODEL_NAME
+	echo "Deploying charms..."
 	STATUS=$(juju models)
-	juju grant $JUJU_USER admin $MODEL_NAME
+	#juju add-model $MODEL_NAME
+	#juju grant $JUJU_USER admin $MODEL_NAME
 	juju deploy $SCRIPT_BASE_PATH/$CHARMS_FILE
+	echo "Waiting for charms to be ready..."
 }
 
 echo "Starting OpenStack deployment..."
@@ -215,7 +218,7 @@ parse_attributes $@
 
 #debug_print
 
-if $VALUT_INIT == "true"; then
+if [$VALUT_INIT == "true"]; then
 	initialize_vault $@
 	exit 0
 fi
@@ -223,7 +226,7 @@ fi
 deploy_The_Charms $@
 STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
 STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
-while [[ $STATE == *"blocked"* && $STATUS == *"idle"*]]; do
+while [[ $STATE == *"blocked"* && $STATUS == *"idle"* ]]; do
 	echo "Waiting for vault to be ready..."
 	sleep 5
 	STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
