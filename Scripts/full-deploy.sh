@@ -3,13 +3,14 @@
 MODEL_NAME="test"
 USER=$(whoami)
 SCRIPT_BASE_PATH=$(pwd)
-CHARMS_FILE="$SCRIPT_BASE_PATH/bundleKISprod-cephWEB.yaml"
+CHARMS_FILE="bundleKISprod-cephWEB.yaml"
 MAAS_LOGIN="student"
 MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_URL="http://10.11.0.2:5240/MAAS"
 
 
 debug_print() {
+	echo "[------------------------------------------------]"
 	echo $MODEL_NAME
 	echo $USER
 	echo $SCRIPT_BASE_PATH
@@ -17,6 +18,7 @@ debug_print() {
 	echo $MAAS_LOGIN
 	echo $MAAS_API_KEY
 	echo $MAAS_URL
+	echo "[------------------------------------------------]"
 }
 
 print_help() {
@@ -66,18 +68,21 @@ check_For_Dependencies() {
 }
 
 parse_attributes() {
+	echo "Parsing attributes..."
+	$CHARMS_FILE = $1
+	shift 1
 	while [ $# -gt 0 ]; do
-		case "$2" in
+		case "$1" in
 			--maas-login)
-				MAAS_LOGIN="$3"
+				MAAS_LOGIN="$2"
 				shift 2
 				;;
 			--maas-url)
-				MAAS_URL="$3"
+				MAAS_URL="$2"
 				shift 2
 				;;
 			--maas-api-key)
-				MAAS_API_KEY="$3"
+				MAAS_API_KEY="$2"
 				shift 2
 				;;
 			--help|-h)
