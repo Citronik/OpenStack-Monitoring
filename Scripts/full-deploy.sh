@@ -6,7 +6,9 @@ SCRIPT_BASE_PATH=$(pwd)
 CHARMS_FILE="bundleKISprod-cephWEB.yaml"
 MAAS_LOGIN="student"
 MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
-MAAS_URL="http://10.11.0.2:5240/MAAS"
+MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+MAAS_PORT="5240"
+MAAS_URL="http://$MAAS_IP:$MAAS_PORT/MAAS"
 
 
 debug_print() {
