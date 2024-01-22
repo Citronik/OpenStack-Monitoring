@@ -194,13 +194,8 @@ initialize_vault() {
 }
 
 deploy_The_Charms() {
-	TMP_FILE="$SCRIPT_BASE_PATH/tmp.txt"
-	maas $MAAS_LOGIN discoveries clear all=True > $TMP_FILE
-	if [[ ! $MAAS_STATUS == *"Success"* ]]; then
-		echo "MAAS discoveries clear failed. Trying to login to MAAS..."
-		login_To_Maas $@
-		exit 1
-	fi
+	login_To_Maas $@
+	maas $MAAS_LOGIN discoveries clear all=True
 	juju add-model $MODEL_NAME
 	STATUS=$(juju models)
 	juju grant $JUJU_USER admin $MODEL_NAME
