@@ -63,7 +63,7 @@ check_For_Other() {
 
 check_For_Dependencies() {
 	echo "Checking for dependencies..."
-	if [ "$#" -ge  ]; then
+	if [ "$#" -ge 1 ]; then
 		echo "Usage: $0 <charms.yaml>"
 		exit 1
 	fi
