@@ -42,7 +42,7 @@ print_help() {
 	echo "      --maas-url	        maas url"
 	echo "      --maas-api-key	    maas api key"
 	echo "		--maas-api-file		maas api key file"
-	echo "		--valut-init		just initialize vault and skip other steps"
+	echo "		--vault-init		just initialize vault and skip other steps"
 	echo "		--vault-key-num		number of keys to be generated"
 	echo "		--vault-key-thresh	threshold for the keys"
 	echo "		--vault-gen-key		generate new keys"
@@ -103,9 +103,9 @@ parse_attributes() {
 				MAAS_API_KEY="$2"
 				shift 2
 				;;
-			--valut-init)
+			--vault-init)
 				#initialize_vault $@
-				VALUT_INIT="true"
+				VAULT_INIT="true"
 				shift 1
 				#exit 0
 				;;
