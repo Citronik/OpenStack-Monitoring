@@ -260,7 +260,7 @@ find_root_ca_dir() {
 	if [ -d ~/snap/openstackclients/common/ ]; then
 		# When using the openstackclients confined snap the certificate has to be
 		# placed in a location reachable by the clients in the snap.
-		ROOT_CA="~/snap/openstackclients/common/${MODEL_NAME}root-ca.crt"
+		ROOT_CA="/home/${USER}/snap/openstackclients/common/${MODEL_NAME}root-ca.crt"
 	fi
 }
 
@@ -277,7 +277,7 @@ cert_Export() {
 	KEYSTONE_IP=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
 	PASSWORD=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
 
-	find_root_ca_dir
+	find_root_ca_dir $@
 	echo "Exporting root ca certificate... to $ROOT_CA"
 
 	echo "Password: ${PASSWORD}"
