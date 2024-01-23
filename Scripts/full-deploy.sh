@@ -159,7 +159,7 @@ check_Vault_Dep() {
 wait_for_vault() {
 	STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
 	STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
-	while [[ $STATE != "blocked" && $STATUS != "waiting" ]]; do
+	while [[ $STATE != "blocked" || $STATUS != "idle" ]]; do
 		echo "Waiting for vault to be ready..."
 		sleep 20
 		STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
@@ -196,8 +196,9 @@ initialize_vault() {
 	done
 
 	export VAULT_TOKEN=$(sed "$((VAULT_KEY_NUM+3))q;d" $VAULT_KEYS_FILE | awk -F ' ' '{print $4}') 
+	echo "Vault token: $VAULT_TOKEN"
 	vault token create -ttl=10m > $VAULT_TOKEN_FILE
-
+	echo "$VAULT_TOKEN_FILE"
 	token=$(cat $VAULT_TOKEN_FILE | grep "token " | awk -F ' ' '{print $2}')
 	
 	juju run-action --wait vault/leader authorize-charm token=$token
