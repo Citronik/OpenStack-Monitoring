@@ -296,7 +296,7 @@ cert_Export() {
 	export OS_IDENTITY_API_VERSION=3
 
 	echo "--- Testing exports to initialize OpenStack CLI Client ---"
-	echo "		   --- Printing endpoints of OpenStack ---		    "
+	echo "--- Printing endpoints of OpenStack ---"
 	openstack endpoint list --interface admin
 
 }
