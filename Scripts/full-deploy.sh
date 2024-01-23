@@ -298,7 +298,6 @@ cert_Export() {
 	echo "--- Testing exports to initialize OpenStack CLI Client ---"
 	echo "--- Printing endpoints of OpenStack ---"
 	openstack endpoint list --interface admin
-
 }
 
 echo "Starting OpenStack deployment..."
