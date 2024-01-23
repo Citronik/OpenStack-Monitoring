@@ -18,10 +18,10 @@ CERT_EXPORT="false"
 
 debug_print() {
 	echo "[------------------------------------------------]"
-	echo $MODEL_NAME
-	echo $USER
-	echo $SCRIPT_BASE_PATH
-	echo $CHARMS_FILE
+	echo "Model name: $MODEL_NAME"
+	echo "User: $USER"
+	echo "Current path: $SCRIPT_BASE_PATH"
+	echo "Charms file: $CHARMS_FILE"
 	echo $MAAS_LOGIN
 	echo $MAAS_API_KEY
 	echo $MAAS_URL
@@ -37,22 +37,23 @@ print_help() {
 	echo "	Script for deploying OpenStack charms on MAAS using Juju."
 	echo "necessary arguments:"
 	echo " "
-	echo "		CHARMS_FILE			path to the openstack charms.yaml file"
+	echo "		CHARMS_FILE				path to the openstack charms.yaml file"
 	echo "[---------------------------------------------]"
 	echo "optional arguments:"
-	echo "		--print-default		print the default values for the attributes"
-	echo "		--model-name		name of the model to be created"
-	echo "		--maas-login		loggin to maas as a user"
-	echo "		--maas-url			maas url"
-	echo "		--maas-api-key		maas api key"
-	echo "		--maas-api-file		maas api key file"
-	echo "		--vault-init		just initialize vault and skip other steps"
-	echo "		--vault-key-num		number of keys to be generated"
-	echo "		--vault-key-thresh	threshold for the keys"
-	echo "		--vault-gen-key		generate new keys"
-	echo "		--cert-export		export the root ca certificate"
-	echo "		--help -h			print this help message"
-	echo "		--version -v		print the version of this script"
+	echo " "
+	echo "	--print-default				print the default values for the attributes"
+	echo "	--model-name <val>			name of the model to be created"
+	echo "	--maas-login <val>			loggin to maas as a user"
+	echo "	--maas-url <val>			maas url"
+	echo "	--maas-api-key <val>		maas api key"
+	echo "	--maas-api-file <val>		maas api key file"
+	echo "	--vault-init				just initialize vault and skip other steps"
+	echo "	--vault-key-num <val>		number of keys to be generated"
+	echo "	--vault-key-thresh <val>	threshold for the keys"
+	echo "	--vault-gen-key				generate new keys"
+	echo "	--cert-export				export the root ca certificate"
+	echo "	--help -h					print this help message"
+	echo "	--version -v				print the version of this script"
 	echo "[---------------------------------------------]"
 }
 
@@ -254,7 +255,7 @@ cert_export() {
 		ROOT_CA="~/snap/openstackclients/common/${MODEL_NAME}root-ca.crt"
 	fi
 	echo "Exporting root ca certificate... to $ROOT_CA"
-	juju run -m ${JUJU_USER}${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
+	juju run -m admin/${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
 }
 
 echo "Starting OpenStack deployment..."
@@ -276,7 +277,7 @@ fi
 
 case "true" in
 	$CERT_EXPORT)
-		cert_export $@
+		cert_export
 		exit 0
 		;;
 	$VAULT_INIT)
