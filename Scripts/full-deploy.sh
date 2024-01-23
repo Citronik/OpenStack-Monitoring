@@ -278,6 +278,7 @@ cert_Export() {
 	PASSWORD=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
 
 	find_root_ca_dir
+	echo "Exporting root ca certificate... to $ROOT_CA"
 
 	echo "Password: ${PASSWORD}"
 
