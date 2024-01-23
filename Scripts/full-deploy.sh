@@ -56,6 +56,7 @@ print_help() {
 	echo "	--vault-key-thresh <val>	threshold for the keys"
 	echo "	--vault-gen-key				generate new keys"
 	echo "	--cert-copy					copy the root ca certificate from vault"
+	echo "	--cert-export				export the root ca certificate to openstack"
 	echo "	--help -h					print this help message"
 	echo "	--version -v				print the version of this script"
 	echo "[---------------------------------------------]"
