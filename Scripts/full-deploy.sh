@@ -34,22 +34,25 @@ debug_print() {
 print_help() {
 	echo "      full-deploy.sh [CHARMS_FILE] [OPTIONS]"
 	echo "[---------------------------------------------]"
+	echo "	Script for deploying OpenStack charms on MAAS using Juju."
 	echo "necessary arguments:"
-	echo "      CHARMS_FILE	        path to the openstack charms.yaml file"
+	echo " "
+	echo "		CHARMS_FILE			path to the openstack charms.yaml file"
 	echo "[---------------------------------------------]"
 	echo "optional arguments:"
-	echo "		--model-name	    name of the model to be created"
-	echo "		--maas-login	    loggin to maas as a user"
-	echo "		--maas-url	        maas url"
-	echo "		--maas-api-key	    maas api key"
+	echo "		--print-default		print the default values for the attributes"
+	echo "		--model-name		name of the model to be created"
+	echo "		--maas-login		loggin to maas as a user"
+	echo "		--maas-url			maas url"
+	echo "		--maas-api-key		maas api key"
 	echo "		--maas-api-file		maas api key file"
 	echo "		--vault-init		just initialize vault and skip other steps"
 	echo "		--vault-key-num		number of keys to be generated"
 	echo "		--vault-key-thresh	threshold for the keys"
 	echo "		--vault-gen-key		generate new keys"
 	echo "		--cert-export		export the root ca certificate"
-	echo "      --help -h		    print this help message"
-	echo "      --version -v	    print the version of this script"
+	echo "		--help -h			print this help message"
+	echo "		--version -v		print the version of this script"
 	echo "[---------------------------------------------]"
 }
 
@@ -89,6 +92,10 @@ parse_attributes() {
 	shift 1
 	while [ $# -gt 0 ]; do
 		case "$1" in
+			--print-default)
+				debug_print
+				exit 0
+				;;
 			--model-name)
 				MODEL_NAME="$2"
 				shift 2
