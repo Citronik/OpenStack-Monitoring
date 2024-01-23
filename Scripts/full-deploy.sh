@@ -175,7 +175,7 @@ initialize_vault() {
 	VAULT_KEYS_FILE_BKP="$SCRIPT_BASE_PATH/vaultKeys.txt.bkp"
 	VAULT_TOKEN_FILE="$SCRIPT_BASE_PATH/vaultToken.txt"
 	keyArray=()
-	echo " " > $VAULT_TOKEN_FILE
+	#echo " " > $VAULT_TOKEN_FILE
 	check_Vault_Dep
 	echo "Initializing vault..."
 	export VAULT_ADDR="http://$VAULT_IP:$VAULT_PORT"
@@ -195,7 +195,7 @@ initialize_vault() {
 		vault operator unseal ${keyArray[i]}
 	done
 
-	export VAULT_TOKEN=$(sed "$((VAULT_KEY_NUM+3))q;d" $VAULT_KEYS_FILE | awk -F ' ' '{print $4}') 
+	export VAULT_TOKEN=$(cat vaultKeys.txt | grep "Root Token" | awk -F ' ' '{print $4}') 
 	echo "Vault token: $VAULT_TOKEN"
 	vault token create -ttl=10m > $VAULT_TOKEN_FILE
 	echo "$VAULT_TOKEN_FILE"
