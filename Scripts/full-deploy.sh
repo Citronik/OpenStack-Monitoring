@@ -6,6 +6,7 @@ SCRIPT_BASE_PATH=$(pwd)
 CHARMS_FILE="bundleKISprod-cephWEB.yaml"
 MAAS_LOGIN="student"
 JUJU_USER="test-student"
+JUJU_MODEL_USER="admin"
 MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 MAAS_PORT="5240"
@@ -14,7 +15,10 @@ VAULT_INIT="false"
 VAULT_GEN_KEY="false"
 VAULT_KEY_NUM="5"
 VAULT_KEY_THRESH="3"
+CERT_COPY="false"
 CERT_EXPORT="false"
+
+ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
 
 debug_print() {
 	echo "[------------------------------------------------]"
@@ -51,7 +55,7 @@ print_help() {
 	echo "	--vault-key-num <val>		number of keys to be generated"
 	echo "	--vault-key-thresh <val>	threshold for the keys"
 	echo "	--vault-gen-key				generate new keys"
-	echo "	--cert-export				export the root ca certificate"
+	echo "	--cert-copy					copy the root ca certificate from vault"
 	echo "	--help -h					print this help message"
 	echo "	--version -v				print the version of this script"
 	echo "[---------------------------------------------]"
@@ -129,6 +133,10 @@ parse_attributes() {
 				;;
 			--vault-gen-key)
 				VAULT_GEN_KEY="true"
+				shift 1
+				;;
+			--cert-copy)
+				CERT_COPY="true"
 				shift 1
 				;;
 			--cert-export)
@@ -247,8 +255,8 @@ deploy_The_Charms() {
 	sleep 3600
 }
 
-cert_export() {
-	ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
+cert_Copy() {
+	#ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
 	if [ -d ~/snap/openstackclients/common/ ]; then
 		# When using the openstackclients confined snap the certificate has to be
 		# placed in a location reachable by the clients in the snap.
@@ -256,6 +264,33 @@ cert_export() {
 	fi
 	echo "Exporting root ca certificate... to $ROOT_CA"
 	juju run -m admin/${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
+	echo "Root ca certificate copied succesfully! :)"
+}
+
+cert_Export() {
+	echo "Exporting root ca certificate..."
+	KEYSTONE_IP=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
+	PASSWORD=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
+
+	echo "Password: ${PASSWORD}"
+
+	export OS_REGION_NAME=RegionOne
+	export OS_AUTH_VERSION=3
+	export OS_CACERT=${ROOT_CA}
+	export OS_AUTH_URL=https://${KEYSTONE_IP}:5000/v3
+	export OS_PROJECT_DOMAIN_NAME=admin_domain
+	export OS_AUTH_PROTOCOL=https
+	export OS_USERNAME=admin
+	export OS_AUTH_TYPE=password
+	export OS_USER_DOMAIN_NAME=admin_domain
+	export OS_PROJECT_NAME=admin
+	export OS_PASSWORD=${PASSWORD}
+	export OS_IDENTITY_API_VERSION=3
+
+	echo "--- Testing exports to initialize OpenStack CLI Client ---"
+	echo "		   --- Printing endpoints of OpenStack ---		    "
+	openstack endpoint list --interface admin
+
 }
 
 echo "Starting OpenStack deployment..."
@@ -276,12 +311,16 @@ if [ "$VAULT_INIT" == "true" ]; then
 fi
 
 case "true" in
-	$CERT_EXPORT)
-		cert_export
+	$CERT_COPY)
+		cert_Copy
 		exit 0
 		;;
 	$VAULT_INIT)
 		initialize_vault $@
+		exit 0
+		;;
+	$CERT_EXPORT)
+		cert_Export
 		exit 0
 		;;
 esac
