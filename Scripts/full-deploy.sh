@@ -256,13 +256,17 @@ deploy_The_Charms() {
 	sleep 3600
 }
 
-cert_Copy() {
-	#ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
+find_root_ca_dir() {
 	if [ -d ~/snap/openstackclients/common/ ]; then
 		# When using the openstackclients confined snap the certificate has to be
 		# placed in a location reachable by the clients in the snap.
 		ROOT_CA="~/snap/openstackclients/common/${MODEL_NAME}root-ca.crt"
 	fi
+}
+
+cert_Copy() {
+	#ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
+	find_root_ca_dir
 	echo "Exporting root ca certificate... to $ROOT_CA"
 	juju run -m admin/${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
 	echo "Root ca certificate copied succesfully! :)"
@@ -272,6 +276,8 @@ cert_Export() {
 	echo "Exporting root ca certificate..."
 	KEYSTONE_IP=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
 	PASSWORD=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
+
+	find_root_ca_dir
 
 	echo "Password: ${PASSWORD}"
 
