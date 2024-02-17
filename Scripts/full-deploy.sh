@@ -39,13 +39,14 @@ print_help() {
 	echo "      full-deploy.sh [CHARMS_FILE] [OPTIONS]"
 	echo "[---------------------------------------------]"
 	echo "	Script for deploying OpenStack charms on MAAS using Juju."
-	echo "necessary arguments:"
+	#echo "necessary arguments:"
 	echo " "
-	echo "		CHARMS_FILE				path to the openstack charms.yaml file"
-	echo "[---------------------------------------------]"
+	#echo "		CHARMS_FILE				path to the openstack charms.yaml file"
+	#echo "[---------------------------------------------]"
 	echo "optional arguments:"
 	echo " "
 	echo "	--print-default				print the default values for the attributes"
+	echo "	--bundle-path <val>			path to the openstack charms.yaml file"
 	echo "	--model-name <val>			name of the model to be created"
 	echo "	--maas-login <val>			loggin to maas as a user"
 	echo "	--maas-url <val>			maas url"
@@ -75,11 +76,11 @@ check_For_Other() {
 }
 
 check_For_Dependencies() {
-	echo "Checking for dependencies..."
-	if [ "$#" -le 1 ]; then
-		echo "Usage: $0 <charms.yaml>"
-		exit 1
-	fi
+	echo "Checking for dependencies..." unne
+	#if [ "$#" -le 1 ]; then
+	#	echo "Usage: $0 <charms.yaml>"
+	#	exit 1
+	#fi
 	if ! command -v juju &> /dev/null; then
 		echo "Juju is not installed. Please install Juju before running this script."
 		exit 1
