@@ -95,10 +95,13 @@ check_For_Dependencies() {
 
 parse_attributes() {
 	echo "Parsing attributes..."
-	CHARMS_FILE=$1
-	shift 1
 	while [ $# -gt 0 ]; do
+		echo "Attribute: $1"
 		case "$1" in
+			--bundle-path)
+				CHARMS_FILE="$2"
+				shift 2
+				;;
 			--print-default)
 				debug_print
 				exit 0
@@ -300,15 +303,18 @@ cert_Export() {
 	echo "--- Printing endpoints of OpenStack ---"
 	openstack endpoint list --interface admin
 }
-
+###################################################################################
 echo "Starting OpenStack deployment..."
 
+# 1. Check for help and version
 check_For_Other $@
 
+# 2. Check for dependencies(maas and juju)
 check_For_Dependencies $@
 
 #debug_print
 
+# 3. Parse the attributes
 parse_attributes $@
 
 #debug_print
@@ -339,3 +345,4 @@ esac
 
 echo "OpenStack deployment completed succesfully! :)"
 #exit 0
+###################################################################################
