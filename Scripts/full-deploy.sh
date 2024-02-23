@@ -11,10 +11,10 @@ MAAS_API_KEY="$SCRIPT_BASE_PATH/maas-api-key"
 MAAS_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 MAAS_PORT="5240"
 MAAS_URL="http://$MAAS_IP:$MAAS_PORT/MAAS"
-VAULT_INIT="false"
-VAULT_GEN_KEY="false"
 VAULT_KEY_NUM="5"
 VAULT_KEY_THRESH="3"
+VAULT_INIT="false"
+VAULT_GEN_KEY="false"
 CERT_COPY="false"
 CERT_EXPORT="false"
 
@@ -36,14 +36,14 @@ debug_print() {
 }
 
 print_help() {
-	echo "      full-deploy.sh [CHARMS_FILE] [OPTIONS]"
+	echo "      full-deploy.sh [OPTIONS]"
 	echo "[---------------------------------------------]"
 	echo "	Script for deploying OpenStack charms on MAAS using Juju."
 	#echo "necessary arguments:"
 	echo " "
 	#echo "		CHARMS_FILE				path to the openstack charms.yaml file"
 	#echo "[---------------------------------------------]"
-	echo "optional arguments:"
+	echo "OPTIONS:"
 	echo " "
 	echo "	--print-default				print the default values for the attributes"
 	echo "	--bundle-path <val>			path to the openstack charms.yaml file"
@@ -76,7 +76,7 @@ check_For_Other() {
 }
 
 check_For_Dependencies() {
-	echo "Checking for dependencies..." unne
+	echo "Checking for dependencies..."
 	#if [ "$#" -le 1 ]; then
 	#	echo "Usage: $0 <charms.yaml>"
 	#	exit 1
@@ -191,7 +191,7 @@ wait_for_vault() {
 	done
 }
 
-### Break into the functions
+### Break into the functions 
 initialize_vault() {
 	wait_for_vault
 	VAULT_IP=$(juju status | grep vault/ | awk -F ' ' '{print $5}')
@@ -321,23 +321,21 @@ fi
 case "true" in
 	$CERT_COPY)
 		cert_Copy
-		exit 0
+		#exit 0
 		;;
 	$VAULT_INIT)
 		initialize_vault $@
-		exit 0
+		#exit 0
 		;;
 	$CERT_EXPORT)
 		cert_Export
-		exit 0
+		#exit 0
+		;;
+	*)
+		deploy_The_Charms $@
+		initialize_vault $@
 		;;
 esac
 
-deploy_The_Charms $@
-
-initialize_vault $@
-
-
-
 echo "OpenStack deployment completed succesfully! :)"
-exit 0
+#exit 0
