@@ -118,6 +118,7 @@ parse_attributes() {
 		case "$1" in
 			--bundle-path)
 				CHARMS_FILE="$2"
+				FULL_DEPLOY="true"
 				shift 2
 				;;
 			--print-default)
