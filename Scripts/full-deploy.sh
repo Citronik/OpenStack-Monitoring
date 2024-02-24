@@ -46,22 +46,23 @@ print_help() {
 	#echo "[---------------------------------------------]"
 	echo "OPTIONS:"
 	echo " "
-	echo "	--print-default				print the default values for the attributes"
-	echo "	--full-deploy				deploy the charms and initialize vault"
-	echo "	--bundle-path <val>			path to the openstack charms.yaml file"
-	echo "	--model-name <val>			name of the model to be created"
-	echo "	--maas-login <val>			loggin to maas as a user"
-	echo "	--maas-url <val>			maas url"
-	echo "	--maas-api-key <val>		maas api key"
-	echo "	--maas-api-file <val>		maas api key file"
-	echo "	--vault-init				just initialize vault and skip other steps"
-	echo "	--vault-key-num <val>		number of keys to be generated"
-	echo "	--vault-key-thresh <val>	threshold for the keys"
-	echo "	--vault-gen-key				generate new keys"
-	echo "	--cert-copy					copy the root ca certificate from vault"
-	echo "	--cert-export				export the root ca certificate to openstack"
-	echo "	--help -h					print this help message"
-	echo "	--version -v				print the version of this script"
+	echo "	--print-default					print the default values for the attributes"
+	echo "	--full-deploy					deploy the charms and initialize vault"
+	echo "	--bundle-path <val>				path to the openstack charms.yaml file"
+	echo "	--model-name <val>				name of the model to be created"
+	echo "	--maas-login <val>				loggin to maas as a user"
+	echo "	--maas-url <val>				maas url"
+	echo "	--maas-api-key <val>			maas api key"
+	echo "	--maas-api-file <val>			maas api key file"
+	echo "	--vault-init					just initialize vault and skip other steps"
+	echo "	--vault-key-num <val>			number of keys to be generated"
+	echo "	--vault-key-thresh <val>		threshold for the keys"
+	echo "	--vault-gen-key					generate new keys"
+	echo "	--cert-copy						copy the root ca certificate from vault"
+	echo "	--cert-export					export the root ca certificate to openstack"
+	echo "	--destroy-model <val>			destroy the model"
+	echo "	--help -h						print this help message"
+	echo "	--version -v					print the version of this script"
 	echo "[---------------------------------------------]"
 }
 
@@ -166,6 +167,10 @@ parse_attributes() {
 			--cert-export)
 				CERT_EXPORT="true"
 				shift 1
+				;;
+			--destroy-model)
+				destroy_Model $@
+				exit 0
 				;;
 			--help|-h)
 				print_help
@@ -402,8 +407,10 @@ init_Openstack() {
 }
 
 destroy_Model() {
+	$MODEL_NAME="$1"
+	check_Switch_Model $@
 	echo "Destroying model...: $MODEL_NAME"
-	juju destroy-model $MODEL_NAME --no-wait -y
+	juju destroy-model $MODEL_NAME --no-wait -y --force
 }
 
 final_evaluation_of_the_script() {
