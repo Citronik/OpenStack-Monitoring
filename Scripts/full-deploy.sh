@@ -17,6 +17,7 @@ VAULT_INIT="false"
 VAULT_GEN_KEY="false"
 CERT_COPY="false"
 CERT_EXPORT="false"
+FULL_DEPLOY="false"
 
 ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
 
@@ -26,12 +27,12 @@ debug_print() {
 	echo "User: $USER"
 	echo "Current path: $SCRIPT_BASE_PATH"
 	echo "Charms file: $CHARMS_FILE"
-	echo $MAAS_LOGIN
-	echo $MAAS_API_KEY
-	echo $MAAS_URL
-	echo $VAULT_GEN_KEY
-	echo $VAULT_KEY_NUM
-	echo $VAULT_KEY_THRESH
+	echo "Maas login: $MAAS_LOGIN"
+	echo "Maas api-key file: $MAAS_API_KEY"
+	echo "Maas url: $MAAS_URL"
+	echo "Generate vault keys: $VAULT_GEN_KEY"
+	echo "Number of Vault key: $VAULT_KEY_NUM"
+	echo "Threshold for Vault keys: $VAULT_KEY_THRESH"
 	echo "[------------------------------------------------]"
 }
 
@@ -46,6 +47,7 @@ print_help() {
 	echo "OPTIONS:"
 	echo " "
 	echo "	--print-default				print the default values for the attributes"
+	echo "	--full-deploy				deploy the charms and initialize vault"
 	echo "	--bundle-path <val>			path to the openstack charms.yaml file"
 	echo "	--model-name <val>			name of the model to be created"
 	echo "	--maas-login <val>			loggin to maas as a user"
@@ -61,6 +63,22 @@ print_help() {
 	echo "	--help -h					print this help message"
 	echo "	--version -v				print the version of this script"
 	echo "[---------------------------------------------]"
+}
+
+check_Command_Success() {
+	if [ $? -ne 0 ]; then
+		echo "Command failed! :("
+		return 1
+	fi
+	command="$1"
+	expected_Output="$2"
+	
+	output=$(eval "$command")
+	if echo "$output" | grep -q "$expected_Output"; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 check_For_Other() {
@@ -167,6 +185,7 @@ parse_attributes() {
 
 login_To_Maas() {
     maas login $MAAS_LOGIN $MAAS_URL - < $MAAS_API_KEY
+	maas $MAAS_LOGIN discoveries clear all=True
 }
 
 check_Vault_Dep() {
@@ -247,17 +266,14 @@ initialize_vault() {
 }
 
 deploy_The_Charms() {
-
-	login_To_Maas $@
-	maas $MAAS_LOGIN discoveries clear all=True
 	echo "Deploying charms..."
-	STATUS=$(juju models)
-	#juju add-model $MODEL_NAME
-	#juju grant $JUJU_USER admin $MODEL_NAME
+	#STATUS=$(juju models --format json)
+	CURRENT_MODEL=$(juju models --format json | jq -r '."current-model"')
+	echo "OpenStack will be deployed to: $CURRENT_MODEL"
+	sleep 5
 	juju switch admin/upgrade-test
 	juju deploy $SCRIPT_BASE_PATH/$CHARMS_FILE
 	echo "Waiting for charms to be ready..."
-	sleep 3600
 }
 
 find_root_ca_dir() {
@@ -303,6 +319,107 @@ cert_Export() {
 	echo "--- Printing endpoints of OpenStack ---"
 	openstack endpoint list --interface admin
 }
+
+init_Openstack() {
+	echo "Initializing OpenStack..."
+
+	juju config openstack-dashboard default-domain="admin_domain"
+	juju config rabbitmq-server cluster-partition-handling="autoheal"
+
+	openstack image create --public --container-format bare \
+	   --disk-format qcow2 --file ~/images/jammy-amd64.img \
+	   jammy-amd64
+
+	#openstack flavor create --ram 8192 --disk 50 --vcpus 10 test
+	openstack flavor create --ram 1024 --disk 10 --vcpus 1 test
+
+	#openstack network create --external --share \
+	#   --provider-network-type flat --provider-physical-network physnet1 \
+	#   ext-net-153
+
+	#openstack subnet create --network ext-net-153 \
+	#  --allocation-pool start=158.193.153.2,end=158.193.153.254 \
+	#  --dns-nameserver 158.193.152.4 --gateway 158.193.153.1 \
+	#  --subnet-range 158.193.153.0/24 EXT153
+
+	openstack network create --external --share \
+	   --provider-network-type flat --provider-physical-network physnet2 \
+	   ext-net-154
+
+	openstack subnet create --network ext-net-154 \
+	  --allocation-pool start=158.193.154.20,end=158.193.154.220 \
+	  --dns-nameserver 158.193.152.4 --gateway 158.193.154.1 \
+	  --subnet-range 158.193.154.0/24 EXT154
+
+	openstack keypair create --public-key /home/student/.ssh/openstack_ssh_key.pub --private-key /home/student/.ssh/openstack_ssh_key.key mykey
+
+	openstack server create --image jammy-amd64 --flavor test \
+	   --key-name mykey --network ext-net-154 \
+	    test-instance
+
+	#update compute quotas
+	openstack quota set --cores -1 --class default
+	openstack quota set --instances -1 --class default
+	openstack quota set --ram -1 --class default
+	openstack quota set --volumes -1 --class default
+	openstack quota set --gigabytes -1 --class default
+
+
+	env | grep OS_PASSWORD | awk -F '=' '{print $2}'
+	#openstack endpoint list --interface admin
+}
+
+create_Model() {
+	echo "Creating model..."
+	juju add-model $MODEL_NAME
+	juju grant $JUJU_USER admin $MODEL_NAME
+
+	if check_Command_Success "juju models --format json" "current-model"; then
+		echo "Model created succesfully! :)"
+	else
+		echo "Model creation failed! :("
+		juju switch $MODEL_NAME
+	fi
+}
+
+execute_full_deploy() {
+	echo "Executing full deploy..."
+	login_To_Maas $@
+	create_Model $@
+	deploy_The_Charms $@
+	initialize_vault $@
+	cert_Copy $@
+	cert_Export $@
+	init_Openstack $@
+	echo "Full deploy completed succesfully! :)"
+}
+
+destroy_Model() {
+	echo "Destroying model...: $MODEL_NAME"
+	juju destroy-model $MODEL_NAME --no-wait -y
+}
+
+final_evaluation_of_the_script() {
+	echo "Final evaluation of the script..."
+	if [ $FULL_DEPLOY == "true" ]; then
+		execute_Full_Deploy $@
+	else
+		case "true" in
+			$VAULT_INIT)
+				initialize_vault $@
+				#exit 0
+				;;
+			$CERT_COPY)
+				cert_Copy
+				#exit 0
+				;;
+			$CERT_EXPORT)
+				cert_Export
+				#exit 0
+				;;
+		esac
+	fi
+}
 ###################################################################################
 echo "Starting OpenStack deployment..."
 
@@ -319,29 +436,8 @@ parse_attributes $@
 
 #debug_print
 
-if [ "$VAULT_INIT" == "true" ]; then
-	initialize_vault $@
-	exit 0
-fi
-
-case "true" in
-	$CERT_COPY)
-		cert_Copy
-		#exit 0
-		;;
-	$VAULT_INIT)
-		initialize_vault $@
-		#exit 0
-		;;
-	$CERT_EXPORT)
-		cert_Export
-		#exit 0
-		;;
-	*)
-		deploy_The_Charms $@
-		initialize_vault $@
-		;;
-esac
+# 4. Deploy the charms
+final_evaluation_of_the_script $@
 
 echo "OpenStack deployment completed succesfully! :)"
 #exit 0
