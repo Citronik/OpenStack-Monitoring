@@ -185,6 +185,7 @@ parse_attributes() {
 }
 
 login_To_Maas() {
+	echo "Logging to MAAS..."
     maas login $MAAS_LOGIN $MAAS_URL - < $MAAS_API_KEY
 	maas $MAAS_LOGIN discoveries clear all=True
 }
@@ -321,6 +322,36 @@ cert_Export() {
 	openstack endpoint list --interface admin
 }
 
+check_Switch_Model() {
+	if check_Command_Success "juju models --format json | jq -r '."current-model"'" "$(MODEL_NAME)"; then
+		echo "Model created succesfully! :)"
+	else
+		echo "Model creation failed! :("
+		juju switch $MODEL_NAME
+	fi
+}
+
+create_Model() {
+	echo "Creating model..."
+	juju add-model $MODEL_NAME
+	juju grant $JUJU_USER admin $MODEL_NAME
+
+	check_Switch_Model $@
+}
+
+
+execute_Full_Deploy() {
+	echo "Executing full deploy..."
+	login_To_Maas $@
+	create_Model $@
+	deploy_The_Charms $@
+	initialize_vault $@
+	cert_Copy $@
+	cert_Export $@
+	init_Openstack $@
+	echo "Full deploy completed succesfully! :)"
+}
+
 init_Openstack() {
 	echo "Initializing OpenStack..."
 
@@ -368,31 +399,6 @@ init_Openstack() {
 
 	env | grep OS_PASSWORD | awk -F '=' '{print $2}'
 	#openstack endpoint list --interface admin
-}
-
-create_Model() {
-	echo "Creating model..."
-	juju add-model $MODEL_NAME
-	juju grant $JUJU_USER admin $MODEL_NAME
-
-	if check_Command_Success "juju models --format json | jq -r '."current-model"'" "$(MODEL_NAME)"; then
-		echo "Model created succesfully! :)"
-	else
-		echo "Model creation failed! :("
-		juju switch $MODEL_NAME
-	fi
-}
-
-execute_Full_Deploy() {
-	echo "Executing full deploy..."
-	login_To_Maas $@
-	create_Model $@
-	deploy_The_Charms $@
-	initialize_vault $@
-	cert_Copy $@
-	cert_Export $@
-	init_Openstack $@
-	echo "Full deploy completed succesfully! :)"
 }
 
 destroy_Model() {
