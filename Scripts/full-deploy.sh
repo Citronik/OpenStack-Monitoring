@@ -169,6 +169,7 @@ parse_attributes() {
 				shift 1
 				;;
 			--destroy-model)
+				shift 1
 				destroy_Model $@
 				exit 0
 				;;
@@ -328,7 +329,7 @@ cert_Export() {
 }
 
 check_Switch_Model() {
-	if check_Command_Success "juju models --format json | jq -r '."current-model"'" "$(MODEL_NAME)"; then
+	if check_Command_Success "juju models --format json | jq -r '.\"current-model\"'" "${MODEL_NAME}"; then
 		echo "Model created succesfully! :)"
 	else
 		echo "Model creation failed! :("
@@ -407,7 +408,7 @@ init_Openstack() {
 }
 
 destroy_Model() {
-	$MODEL_NAME="$1"
+	MODEL_NAME=$1
 	check_Switch_Model $@
 	echo "Destroying model...: $MODEL_NAME"
 	juju destroy-model $MODEL_NAME --no-wait -y --force
