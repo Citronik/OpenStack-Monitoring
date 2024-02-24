@@ -3,7 +3,7 @@
 MODEL_NAME="upgrade-test"
 USER=$(whoami)
 SCRIPT_BASE_PATH=$(pwd)
-CHARMS_FILE="bundleKISprod-cephWEB.yaml"
+CHARMS_FILE="${SCRIPT_BASE_PATH}/bundleKISprod-cephWEB.yaml"
 MAAS_LOGIN="student"
 JUJU_USER="test-student"
 JUJU_MODEL_USER="admin"
@@ -66,8 +66,8 @@ print_help() {
 }
 
 check_Command_Success() {
-	if [ $? -ne 0 ]; then
-		echo "Command failed! :("
+	if [ $# -lt 2 ]; then
+		echo "Missing arguments! :("
 		return 1
 	fi
 	command="$1"
@@ -273,7 +273,7 @@ deploy_The_Charms() {
 	echo "OpenStack will be deployed to: $CURRENT_MODEL"
 	sleep 5
 	juju switch admin/upgrade-test
-	juju deploy $SCRIPT_BASE_PATH/$CHARMS_FILE
+	juju deploy $CHARMS_FILE
 	echo "Waiting for charms to be ready..."
 }
 
@@ -375,7 +375,7 @@ create_Model() {
 	juju add-model $MODEL_NAME
 	juju grant $JUJU_USER admin $MODEL_NAME
 
-	if check_Command_Success "juju models --format json | " "current-model"; then
+	if check_Command_Success "juju models --format json | jq -r '."current-model"'" "$(MODEL_NAME)"; then
 		echo "Model created succesfully! :)"
 	else
 		echo "Model creation failed! :("
