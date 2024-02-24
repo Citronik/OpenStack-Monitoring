@@ -330,9 +330,9 @@ cert_Export() {
 
 check_Switch_Model() {
 	if check_Command_Success "juju models --format json | jq -r '.\"current-model\"'" "${MODEL_NAME}"; then
-		echo "Model created succesfully! :)"
+		echo "Model already in use: $MODEL_NAME"
 	else
-		echo "Model creation failed! :("
+		echo "Switching to model: $MODEL_NAME"
 		juju switch $MODEL_NAME
 	fi
 }
