@@ -374,7 +374,7 @@ create_Model() {
 	juju add-model $MODEL_NAME
 	juju grant $JUJU_USER admin $MODEL_NAME
 
-	if check_Command_Success "juju models --format json" "current-model"; then
+	if check_Command_Success "juju models --format json | " "current-model"; then
 		echo "Model created succesfully! :)"
 	else
 		echo "Model creation failed! :("
@@ -382,7 +382,7 @@ create_Model() {
 	fi
 }
 
-execute_full_deploy() {
+execute_Full_Deploy() {
 	echo "Executing full deploy..."
 	login_To_Maas $@
 	create_Model $@
