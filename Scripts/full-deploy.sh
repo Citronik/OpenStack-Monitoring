@@ -13,11 +13,14 @@ MAAS_PORT="5240"
 MAAS_URL="http://$MAAS_IP:$MAAS_PORT/MAAS"
 VAULT_KEY_NUM="5"
 VAULT_KEY_THRESH="3"
+NUMBER_COMMANDS=0
 VAULT_INIT="false"
 VAULT_GEN_KEY="false"
 CERT_COPY="false"
 CERT_EXPORT="false"
 FULL_DEPLOY="false"
+INIT_OPENSTACK="false"
+
 
 ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
 
@@ -60,6 +63,7 @@ print_help() {
 	echo "	--vault-gen-key					generate new keys"
 	echo "	--cert-copy						copy the root ca certificate from vault"
 	echo "	--cert-export					export the root ca certificate to openstack"
+	echo "	--init-openstack				initialize openstack"
 	echo "	--destroy-model <val>			destroy the model"
 	echo "	--delete-model-resources		delete all the deployed applications and machines"
 	echo "	--help -h						print this help message"
@@ -156,6 +160,7 @@ parse_attributes() {
 			--vault-init)
 				#initialize_vault $@
 				VAULT_INIT="true"
+				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
 				shift 1
 				#exit 0
 				;;
@@ -168,20 +173,30 @@ parse_attributes() {
 				shift 2
 				;;
 			--vault-gen-key)
-				VAULT_GEN_KEY="true"
+				VAULT_GEN_KEY="true"				
 				shift 1
 				;;
 			--cert-copy)
 				CERT_COPY="true"
+				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
 				shift 1
 				;;
 			--cert-export)
 				CERT_EXPORT="true"
+				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
+				shift 1
+				;;
+			--init-openstack)
+				INIT_OPENSTACK="true"
+				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
 				shift 1
 				;;
 			--destroy-model)
-				shift 1
 				destroy_Model $@
+				exit 0
+				;;
+			--delete-model-resources)
+				delete_Model_resources
 				exit 0
 				;;
 			--help|-h)
@@ -454,20 +469,31 @@ final_evaluation_of_the_script() {
 	if [ $FULL_DEPLOY == "true" ]; then
 		execute_Full_Deploy $@
 	else
-		case "true" in
-			$VAULT_INIT)
-				initialize_vault $@
-				#exit 0
-				;;
-			$CERT_COPY)
-				cert_Copy
-				#exit 0
-				;;
-			$CERT_EXPORT)
-				cert_Export
-				#exit 0
-				;;
-		esac
+		while [ $NUMBER_COMMANDS -gt 0 ]; do
+			case "true" in
+				$VAULT_INIT)
+					initialize_vault $@
+					VAULT_INIT="false"
+					#exit 0
+					;;
+				$CERT_COPY)
+					cert_Copy
+					CERT_COPY="false"
+					#exit 0
+					;;
+				$CERT_EXPORT)
+					cert_Export
+					CERT_EXPORT="false"
+					#exit 0
+					;;
+				$INIT_OPENSTACK)
+					init_Openstack
+					INIT_OPENSTACK="false"
+					#exit 0
+					;;
+			esac
+			NUMBER_COMMANDS=$((NUMBER_COMMANDS-1))
+		done
 	fi
 }
 ###################################################################################
