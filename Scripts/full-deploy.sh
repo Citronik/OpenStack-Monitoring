@@ -423,7 +423,8 @@ init_Openstack() {
 
 destroy_Model() {
 	MODEL_NAME=$1
-	check_Switch_Model $@
+	#check_Switch_Model $@
+	request_Approval "Do you want to really destroy the $MODEL_NAME? [y/n]"
 	echo "Destroying model...: $MODEL_NAME"
 	juju destroy-model $MODEL_NAME --no-wait -y --force
 }
