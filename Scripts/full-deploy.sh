@@ -327,8 +327,8 @@ cert_Copy() {
 
 cert_Export() {
 	echo "Exporting root ca certificate..."
-	KEYSTONE_IP=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
-	PASSWORD=$(juju run -m ${JUJU_MODEL_USER}/${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
+	KEYSTONE_IP=$(juju run -m ${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
+	PASSWORD=$(juju run -m ${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
 
 	find_root_ca_dir $@
 	echo "Exporting root ca certificate... to $ROOT_CA"
