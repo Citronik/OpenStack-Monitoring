@@ -348,6 +348,15 @@ cert_Export() {
 	export OS_PASSWORD=${PASSWORD}
 	export OS_IDENTITY_API_VERSION=3
 
+	#export OS_REGION_NAME OS_AUTH_VERSION OS_CACERT OS_AUTH_URL OS_PROJECT_DOMAIN_NAME OS_AUTH_PROTOCOL OS_USERNAME OS_AUTH_TYPE OS_USER_DOMAIN_NAME OS_PROJECT_NAME OS_PASSWORD OS_IDENTITY_API_VERSION
+
+	#echo "--- Testing exports to initialize OpenStack CLI Client ---"
+	#echo "--- Printing endpoints of OpenStack ---"
+	#openstack endpoint list --interface admin
+	return 0
+}
+
+print_Endpoints() {
 	echo "--- Testing exports to initialize OpenStack CLI Client ---"
 	echo "--- Printing endpoints of OpenStack ---"
 	openstack endpoint list --interface admin
@@ -384,6 +393,7 @@ execute_Full_Deploy() {
 	cert_Copy $@
 	cert_Export $@
 	init_Openstack $@
+	print_Endpoints $@
 	echo "Full deploy completed succesfully! :)"
 }
 
