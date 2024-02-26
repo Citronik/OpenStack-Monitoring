@@ -214,10 +214,10 @@ wait_for_vault() {
 	STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
 	STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
 	while [[ $STATE != "blocked" || $STATUS != "idle" ]]; do
-		echo "Waiting for vault to be ready..."
+		echo "Waiting for vault to be ready... "
 		sleep 20
-		STATE=$(juju status | grep vault/ | awk -F '	' '{print $2}')
-		STATUS=$(juju status | grep vault/ | awk -F '	' '{print $3}')
+		STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
+		STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
 	done
 }
 
@@ -270,7 +270,7 @@ initialize_vault() {
 	
 	### check if vault is ready
 	echo "status"
-	juju status | grep vault
+	juju status vault
 }
 
 deploy_The_Charms() {
@@ -278,8 +278,7 @@ deploy_The_Charms() {
 	#STATUS=$(juju models --format json)
 	CURRENT_MODEL=$(juju models --format json | jq -r '."current-model"')
 	echo "OpenStack will be deployed to: $CURRENT_MODEL"
-	sleep 5
-	juju switch admin/upgrade-test
+	#juju switch admin/upgrade-test
 	juju deploy $CHARMS_FILE
 	echo "Waiting for charms to be ready..."
 }
