@@ -37,7 +37,7 @@ debug_print() {
 }
 
 print_help() {
-	echo "      full-deploy.sh [OPTIONS]"
+	echo "      ./full-deploy.sh [OPTIONS]"
 	echo "[---------------------------------------------]"
 	echo "	Script for deploying OpenStack charms on MAAS using Juju."
 	#echo "necessary arguments:"
@@ -47,9 +47,9 @@ print_help() {
 	echo "OPTIONS:"
 	echo " "
 	echo "	--print-default					print the default values for the attributes"
-	echo "	--full-deploy					deploy the charms and initialize vault"
+	#echo "	--full-deploy					deploy the charms and initialize vault"
 	echo "	--bundle-path <val>				path to the openstack charms.yaml file"
-	echo "	--model-name <val>				name of the model to be created"
+	echo "	--model-name <val>				name of the model to perform the actions"
 	echo "	--maas-login <val>				loggin to maas as a user"
 	echo "	--maas-url <val>				maas url"
 	echo "	--maas-api-key <val>			maas api key"
@@ -61,6 +61,7 @@ print_help() {
 	echo "	--cert-copy						copy the root ca certificate from vault"
 	echo "	--cert-export					export the root ca certificate to openstack"
 	echo "	--destroy-model <val>			destroy the model"
+	echo "	--delete-model-resources		delete all the deployed applications and machines"
 	echo "	--help -h						print this help message"
 	echo "	--version -v					print the version of this script"
 	echo "[---------------------------------------------]"
@@ -79,6 +80,16 @@ check_Command_Success() {
 		return 0
 	else
 		return 1
+	fi
+}
+
+request_Approval() {
+	echo "$1"
+	#echo "Do you want to continue? [y/n]"
+	read -r response
+	if [ "$response" != "y" ]; then
+		echo "Exiting the script..."
+		exit 0
 	fi
 }
 
@@ -337,9 +348,13 @@ check_Switch_Model() {
 }
 
 create_Model() {
-	echo "Creating model..."
-	juju add-model $MODEL_NAME
-	juju grant $JUJU_USER admin $MODEL_NAME
+	if ! check_Command_Success "juju models --format json | jq -r '.\"current-model\"'" "${MODEL_NAME}"; then
+		echo "Creating model..."
+		juju add-model $MODEL_NAME
+		juju grant $JUJU_USER admin $MODEL_NAME
+	else
+		echo "Model already exists: $MODEL_NAME"
+	fi
 
 	check_Switch_Model $@
 }
@@ -411,6 +426,26 @@ destroy_Model() {
 	check_Switch_Model $@
 	echo "Destroying model...: $MODEL_NAME"
 	juju destroy-model $MODEL_NAME --no-wait -y --force
+}
+
+delete_Model_resources() {
+	echo "Deleting model resources..."
+	deployed_applications=$(juju status --format=json | jq -r '.applications | keys[]')
+	deployed_machines=$(juju status --format=json | jq -r '.machines | keys[]')
+	echo " ---------------- Deployed machines ---------------- "
+	echo "$deployed_machines"
+	sleep 3
+	echo " -------------- Deployed applications -------------- "
+	echo "$deployed_applications"
+
+	request_Approval "Do you want to remove all the deployed applications and machines? [y/n]"
+
+	for app in $deployed_applications; do
+		juju remove-application $app
+	done
+	for machine in $deployed_machines; do
+		juju remove-machine $machine
+	done
 }
 
 final_evaluation_of_the_script() {
