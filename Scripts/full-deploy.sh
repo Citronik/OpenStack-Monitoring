@@ -212,7 +212,7 @@ check_Vault_Dep() {
 		echo "Vault is not installed. Please install Vault before running this script."
 		exit 1
 	fi
-	if $VAULT_KEY_THRESH -ge $VAULT_KEY_NUM; then
+	if [ $VAULT_KEY_THRESH -ge $VAULT_KEY_NUM ]; then
 		echo "Threshold is bigger than the number of keys. Please change the threshold or the number of keys."
 		exit 1
 	fi
@@ -306,7 +306,7 @@ cert_Copy() {
 	#ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
 	find_root_ca_dir
 	echo "Exporting root ca certificate... to $ROOT_CA"
-	juju run -m admin/${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
+	juju run -m ${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
 	echo "Root ca certificate copied succesfully! :)"
 }
 
