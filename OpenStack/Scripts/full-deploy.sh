@@ -386,7 +386,6 @@ create_Model() {
 
 execute_Full_Deploy() {
 	echo "Executing full deploy..."
-	login_To_Maas $@
 	create_Model $@
 	deploy_The_Charms $@
 	initialize_vault $@
@@ -476,6 +475,7 @@ delete_Model_resources() {
 
 final_evaluation_of_the_script() {
 	echo "Final evaluation of the script..."
+	login_To_Maas $@
 	if [ $FULL_DEPLOY == "true" ]; then
 		execute_Full_Deploy $@
 	else
