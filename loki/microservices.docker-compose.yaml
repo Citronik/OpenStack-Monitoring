@@ -68,7 +68,7 @@ services:
       - --overwrite
       - --type=log
     volumes:
-      - ./loki/:/var/log/
+      - ./.loki/:/var/log/
 
   promtail:
     image: grafana/promtail:2.9.2
