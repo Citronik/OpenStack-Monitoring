@@ -58,6 +58,11 @@ services:
         '--enable-feature=remote-write-receiver',
         '--query.lookback-delta=30s'
       ]
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - loki
 
@@ -118,11 +123,15 @@ services:
     image: nginx:1.19
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf
+    entrypoint:
+      - sh
+      - -euc
+      - /docker-entrypoint.sh nginx -g "daemon off;"
     ports:
       - "8080:80"
       - "3100"
     healthcheck:
-      test: ["CMD", "service", "nginx", "status"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/healthy"]
       interval: 10s
       timeout: 5s
       retries: 5
