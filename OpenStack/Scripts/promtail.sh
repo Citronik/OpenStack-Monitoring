@@ -32,6 +32,11 @@ rm promtail-linux-amd64.zip
 # Move promtail binary to /usr/local/bin
 sudo mv promtail-linux-amd64 /usr/local/bin/promtail
 
+sudo useradd --system promtail
+usermod -a -G adm promtail
+
+sudo mkdir -p /etc/promtail
+
 # Create promtail configuration file
 sudo tee /etc/promtail/promtail-config.yaml > /dev/null <<EOF
 server:
@@ -47,13 +52,13 @@ clients:
 
 
 scrape_configs:
-  - job_name: docker-logs
+  - job_name: maas-logs
     static_config:
       - targets:
           - localhost
         labels:
-          job: loki-docker-logs
-          __path__: /
+          job: maas-logs
+          __path__: /var/snap/maas/common/log/*.log.*
     pipeline_stages:
       - json:
           expressions:
@@ -65,7 +70,7 @@ scrape_configs:
 EOF
 
 # Create promtail logs directory
-sudo mkdir -p /etc/promtail/logs
+sudo mkdir -p /var/log/promtail/
 
 # Create promtail service file
 sudo tee /etc/systemd/system/promtail.service > /dev/null <<EOF

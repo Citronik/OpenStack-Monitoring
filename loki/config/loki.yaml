@@ -5,36 +5,24 @@ server:
   grpc_listen_address: 0.0.0.0
   http_listen_port: 3100
   grpc_listen_port: 9095
-  log_level: debug
+  log_level: info
 
-# storage_config:
-  # filesystem:
-  #   directory: /tmp/loki/
-# boltdb_shipper:
-# # active_index_directory: /data/index
-# # build_per_tenant_index: true
-# # cache_location: /data/boltdb-cache
-# # index_gateway_client:
-# # # # only applicable if using microservices where index-gateways are independently deployed.
-# # # # This example is using kubernetes-style naming.
-# # # server_address: dns:///index-gateway.<namespace>.svc.cluster.local:9095
-# # shared_store: gcs
-# # New tsdb-shipper configuration
-# tsdb_shipper:
-# # active_index_directory: /data/tsdb-index
-# # cache_location: /data/tsdb-cache
-# # index_gateway_client:
-# # # # only applicable if using microservices where index-gateways are independently deployed.
-# # # # This example is using kubernetes-style naming.
-# # # server_address: dns:///index-gateway.<namespace>.svc.cluster.local:9095
-# # shared_store: gcs
 common:
-  path_prefix: /tmp/loki/
-  compactor_address: http://loki-write:3100
+  path_prefix: /loki
+  compactor_address: http://loki-backend:3100
   replication_factor: 3
 
+storage_config:
+  aws:
+    endpoint: minio:9000
+    insecure: true
+    bucketnames: loki-data
+    access_key_id: loki
+    secret_access_key: supersecret
+    s3forcepathstyle: true
+
 memberlist:
-  join_members: ["loki-read", "loki-write"]
+  join_members: ["loki-read", "loki-write", "loki-backend"]
   dead_node_reclaim_time: 30s
   gossip_to_dead_nodes_time: 15s
   left_ingesters_timeout: 30s
@@ -62,22 +50,54 @@ ingester:
   chunk_block_size: 262144
   flush_op_timeout: 10s
 
+ruler:
+  enable_api: true
+  enable_sharding: true  
+  wal:
+    dir: /loki/ruler-wal
+  evaluation:
+    mode: remote
+    query_frontend:
+      address: dns:///loki-read:9095
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  rule_path: /loki/prom-rules
+  remote_write:
+    enabled: true
+    clients:
+      local:
+         url: http://prometheus:9090/api/v1/write
+         queue_config:
+           # send immediately as soon as a sample is generated
+           capacity: 1
+           batch_send_deadline: 0s
+
 schema_config:
   configs:
-  - from: 2020-05-15
+  - from: 2020-08-01
     store: boltdb-shipper
-    object_store: filesystem
-    schema: v12
+    object_store: s3
+    schema: v11
     index:
       prefix: index_
       period: 24h
-  - from: "2023-01-05" # <---- A date in the future
-    index:
-      period: 24h
-      prefix: index_
-    object_store: filesystem
-    schema: v12
+  - from: 2023-07-11
     store: tsdb
+    object_store: s3
+    schema: v12
+    index:
+      prefix: index_
+      period: 24h
+  - from: 2024-01-10
+    store: tsdb
+    object_store: s3
+    schema: v12
+    index:
+      prefix: index_
+      period: 24h
+
 
 limits_config:
   max_cache_freshness_per_query: '10m'
@@ -106,11 +126,10 @@ frontend:
   max_outstanding_per_tenant: 2048
 
 query_scheduler:
-  max_outstanding_requests_per_tenant: 32768
+  max_outstanding_requests_per_tenant: 1024
 
 querier:
   query_ingesters_within: 2h
-  max_concurrent: 16
 
 compactor:
   working_directory: /tmp/compactor

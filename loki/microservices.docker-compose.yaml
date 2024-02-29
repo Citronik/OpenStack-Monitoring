@@ -4,8 +4,9 @@ networks:
   loki:
 
 volumes:
+  prometheus:
   grafana:
-#  alertmanager-data:
+  alertmanager-data:
   loki:
 
 services:
@@ -21,7 +22,6 @@ services:
       - "/loki"
     volumes:
       - ./loki:/loki
-      - ./data:/tmp/loki
     networks:
       - loki
 
@@ -39,6 +39,37 @@ services:
     networks:
       - loki
 
+  prometheus:
+    image: prom/prometheus:v2.27.0
+    ports:
+      - 9090
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus:/prometheus
+    command:
+      [
+        '--log.level=debug',
+        '--config.file=/etc/prometheus/prometheus.yml',
+        '--enable-feature=remote-write-receiver',
+        '--query.lookback-delta=30s'
+      ]
+    networks:
+      - loki
+
+  # for testing purposes only, disable in production
+  log-generator:
+    image: mingrammer/flog
+    command:
+      - --loop
+      - --format=json
+      - --number=10 # number of log lines to generate per second
+      - --delay=100ms # delay between log lines
+      - --output=/var/log/generated-logs.txt
+      - --overwrite
+      - --type=log
+    volumes:
+      - ./loki/:/var/log/
+
   promtail:
     image: grafana/promtail:2.9.2
     volumes:
@@ -47,6 +78,28 @@ services:
     ports:
       - 9080
     command: -config.file=/etc/promtail/promtail.yaml
+    networks:
+      - loki
+
+  minio:
+    image: minio/minio
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler &&
+        minio server --address "0.0.0.0:9000" --console-address "0.0.0.0:9001" /data
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./.data/minio:/data
     networks:
       - loki
 
@@ -64,8 +117,6 @@ services:
     image: *lokiImage
     volumes:
       - ./config:/etc/loki/
-      - ./rules:/loki/rules:ro
-      - ./data:/tmp/loki
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -76,7 +127,7 @@ services:
       - "7946"
       # uncomment to use interactive debugging
       # - "40000-40002:40000" # makes the replicas available on ports 40000, 40001, 40002
-    command: "-config.file=/etc/loki/loki.yaml -target=read"
+    command: "-config.file=/etc/loki/loki.yaml -target=read -legacy-read-mode=false"
     networks:
       - loki
     restart: always
@@ -88,7 +139,6 @@ services:
     image: *lokiImage
     volumes:
       - ./config:/etc/loki/
-      - ./data:/tmp/loki
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -111,7 +161,7 @@ services:
     image: *lokiImage
     volumes:
       - ./config:/etc/loki/
-      - ./data:/tmp/loki
+      - ./rules:/loki/rules:ro
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -131,14 +181,14 @@ services:
       replicas: 3
 
   # alertmanager to enable receiving alerts
-#  alertmanager:
-#    image: prom/alertmanager:v0.23.0
-#    restart: unless-stopped
-#    ports:
-#      - "9093:9093"
-#    volumes:
-#      - "./config:/config"
-#      - alertmanager-data:/data
-#    command: --config.file=/config/alertmanager.yml --log.level=debug
-#    networks:
-#      - loki
+  alertmanager:
+    image: prom/alertmanager:v0.23.0
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - "./config:/config"
+      - alertmanager-data:/data
+    command: --config.file=/config/alertmanager.yaml --log.level=debug
+    networks:
+      - loki

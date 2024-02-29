@@ -1,0 +1,65 @@
+---
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9095
+
+#memberlist:
+# join_members:
+#    - loki:7946
+
+memberlist:
+  join_members: ["read", "write", "backend"]
+  dead_node_reclaim_time: 30s
+  gossip_to_dead_nodes_time: 15s
+  left_ingesters_timeout: 30s
+  bind_port: 7946
+  gossip_interval: 2s
+
+# ingester:
+#   lifecycler:
+#     join_after: 10s
+#     observe_period: 5s
+#     ring:
+#       replication_factor: 3
+#       kvstore:
+#         store: memberlist
+#     final_sleep: 0s
+#   chunk_idle_period: 1m
+#   wal:
+#     enabled: true
+#     dir: /loki/wal
+#   max_chunk_age: 1m
+#   chunk_retain_period: 30s
+#   chunk_encoding: snappy
+#   chunk_target_size: 1.572864e+06
+#   chunk_block_size: 262144
+#   flush_op_timeout: 10s
+
+schema_config:
+  configs:
+    - from: 2021-08-01
+      store: tsdb
+      object_store: s3
+      schema: v12
+      index:
+        prefix: index_
+        period: 24h
+
+common:
+  path_prefix: /loki
+  replication_factor: 1
+  storage:
+    s3:
+      endpoint: minio:9000
+      insecure: true
+      bucketnames: loki-data
+      access_key_id: loki
+      secret_access_key: supersecret
+      s3forcepathstyle: true
+  ring:
+    kvstore:
+      store: memberlist
+ruler:
+  storage:
+    s3:
+      bucketnames: loki-ruler
