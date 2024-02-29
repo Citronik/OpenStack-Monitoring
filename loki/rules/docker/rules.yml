@@ -7,7 +7,7 @@ groups:
         labels:
           source: "recording rule"
       - record: scalar
-        expr: 10
+        expr: "10"
         labels:
           source: "static"
       - alert: NoGeneratedLogs
