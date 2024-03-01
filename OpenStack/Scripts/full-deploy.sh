@@ -373,13 +373,9 @@ check_Switch_Model() {
 }
 
 create_Model() {
-	if ! check_Command_Success "juju models --format json | jq -r '.\"current-model\"'" "${MODEL_NAME}"; then
-		echo "Creating model..."
-		juju add-model $MODEL_NAME
-		juju grant $JUJU_USER admin $MODEL_NAME
-	else
-		echo "Model already exists: $MODEL_NAME"
-	fi
+	echo "Creating model..."
+	juju add-model $MODEL_NAME
+	juju grant $JUJU_USER admin $MODEL_NAME
 
 	check_Switch_Model $@
 }
