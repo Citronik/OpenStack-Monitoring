@@ -192,6 +192,7 @@ parse_attributes() {
 				shift 1
 				;;
 			--destroy-model)
+				shift 1
 				destroy_Model $@
 				exit 0
 				;;
