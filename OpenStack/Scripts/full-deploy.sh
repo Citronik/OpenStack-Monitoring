@@ -134,6 +134,7 @@ parse_attributes() {
 		case "$1" in
 			--bundle-path)
 				CHARMS_FILE="$2"
+				VAULT_GEN_KEY="true"
 				FULL_DEPLOY="true"
 				shift 2
 				;;
@@ -251,7 +252,7 @@ wait_For_Resource() {
 		sleep 8
 		STATE=$(eval $STATE_CMND)
 		STATUS=$(eval $STATUS_CMND)
-		echo "State: $STATE Status: $STATUS"
+		#echo "State: $STATE Status: $STATUS"
 	done
 	echo ""
 	echo "Resource is ready! :)"
