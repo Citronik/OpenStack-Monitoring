@@ -237,20 +237,37 @@ check_Vault_Dep() {
 
 }
 
-wait_for_vault() {
-	STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
-	STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
-	while [[ $STATE != "blocked" || $STATUS != "idle" ]]; do
-		echo "Waiting for vault to be ready... "
+wait_For_Resource() {
+	STATE_CMND=$1
+	STATUS_CMND=$2
+	STATE=$(eval $STATE_CMND)
+	STATUS=$(eval $STATUS_CMND)
+	excepted_state=$3
+	excepted_status=$4
+	while [[ $STATE != $excepted_state && $STATUS != $excepted_status ]]; do
+		echo "Waiting for resource to be ready... "
 		sleep 20
-		STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
-		STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
+		STATE=$(eval $STATE_CMND)
+		STATUS=$(eval $STATUS_CMND)
 	done
+}
+
+wait_for_vault() {
+	# STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
+	# STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
+	# while [[ $STATE != "blocked" && $STATUS != "idle" ]]; do
+	# 	echo "Waiting for vault to be ready... "
+	# 	sleep 20
+	# 	STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
+	# 	STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
+	# done
+	wait_For_Resource "juju status | grep vault/ | awk -F ' ' '{print $2}'" "juju status | grep vault/ | awk -F ' ' '{print $3}'" "blocked" "idle"
 }
 
 ### Break into the functions 
 initialize_vault() {
-	wait_for_vault
+	wait_for_vault 
+	#wait_For_Resource 
 	VAULT_IP=$(juju status | grep vault/ | awk -F ' ' '{print $5}')
 	VAULT_PORT=$(juju status | grep vault/ | awk -F ' ' '{print $6}' | awk -F '/' '{print $1}')
 	VAULT_KEYS_FILE="$SCRIPT_BASE_PATH/vaultKeys.txt"
