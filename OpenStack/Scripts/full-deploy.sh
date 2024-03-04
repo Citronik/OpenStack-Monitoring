@@ -244,7 +244,7 @@ wait_For_Resource() {
 	STATUS=$(eval $STATUS_CMND)
 	excepted_state=$3
 	excepted_status=$4
-	echo "State: $STATE == $excepted_state Status: $STATUS == $excepted_status"
+	#echo "State: $STATE == $excepted_state Status: $STATUS == $excepted_status"
 	echo -n "Waiting for resource to be ready."
 	while [[ $STATE != $excepted_state || $STATUS != $excepted_status ]]; do
 		echo -n "."
