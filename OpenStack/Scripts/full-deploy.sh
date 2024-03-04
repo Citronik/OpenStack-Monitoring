@@ -251,6 +251,8 @@ wait_For_Resource() {
 		STATE=$(eval $STATE_CMND)
 		STATUS=$(eval $STATUS_CMND)
 	done
+	echo ""
+	echo "Resource is ready! :)"
 }
 
 wait_for_vault() {
