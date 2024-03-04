@@ -244,33 +244,27 @@ wait_For_Resource() {
 	STATUS=$(eval $STATUS_CMND)
 	excepted_state=$3
 	excepted_status=$4
+	echo "State: $STATE == $excepted_state Status: $STATUS == $excepted_status"
 	echo -n "Waiting for resource to be ready."
-	while [[ $STATE != $excepted_state && $STATUS != $excepted_status ]]; do
+	while [[ $STATE != $excepted_state || $STATUS != $excepted_status ]]; do
 		echo -n "."
-		sleep 20
+		sleep 8
 		STATE=$(eval $STATE_CMND)
 		STATUS=$(eval $STATUS_CMND)
+		echo "State: $STATE Status: $STATUS"
 	done
 	echo ""
 	echo "Resource is ready! :)"
 }
 
 wait_for_vault() {
-	# STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
-	# STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
-	# while [[ $STATE != "blocked" && $STATUS != "idle" ]]; do
-	# 	echo "Waiting for vault to be ready... "
-	# 	sleep 20
-	# 	STATE=$(juju status | grep vault/ | awk -F ' ' '{print $2}')
-	# 	STATUS=$(juju status | grep vault/ | awk -F ' ' '{print $3}')
-	# done
-	wait_For_Resource "juju status | grep vault/ | awk -F ' ' '{print $2}'" "juju status | grep vault/ | awk -F ' ' '{print $3}'" "blocked" "idle"
+	wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
+	return 0
 }
 
 ### Break into the functions 
 initialize_vault() {
 	wait_for_vault 
-	#wait_For_Resource 
 	VAULT_IP=$(juju status | grep vault/ | awk -F ' ' '{print $5}')
 	VAULT_PORT=$(juju status | grep vault/ | awk -F ' ' '{print $6}' | awk -F '/' '{print $1}')
 	VAULT_KEYS_FILE="$SCRIPT_BASE_PATH/vaultKeys.txt"
@@ -340,6 +334,7 @@ find_root_ca_dir() {
 
 cert_Copy() {
 	#ROOT_CA="/tmp/${MODEL_NAME}root-ca.crt"
+	wait_For_Resource "juju status keystone | grep keystone/ | awk '{print \$2}'" "juju status keystone | grep keystone/ | awk '{print \$3}'" "active" "idle"
 	find_root_ca_dir
 	echo "Exporting root ca certificate... to $ROOT_CA"
 	juju run -m ${MODEL_NAME} --unit vault/leader 'leader-get root-ca' | tee $ROOT_CA >/dev/null 2>&1
