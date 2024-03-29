@@ -5,6 +5,11 @@ if command -v promtail &>/dev/null; then
     echo "Promtail is already installed."
     exit 0
 fi
+if command -v unzip &>/dev/null; then
+    echo "Unzip is already installed."
+else
+    sudo apt install unzip
+fi
 
 KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 MACHINE_TYPE=$(uname -m)
@@ -25,15 +30,16 @@ sudo apt-get update
 sudo apt-get install -y wget
 
 # Download promtail binary
-wget https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/promtail-${KERNEL_NAME}-${MACHINE_TYPE}.zip
-unzip promtail-linux-amd64.zip
-rm promtail-linux-amd64.zip
+PROMTAIL_NAME="promtail-${KERNEL_NAME}-${MACHINE_TYPE}.zip"
+wget https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/$PROMTAIL_NAME # https://github.com/grafana/loki/releases/download/v2.9.5/promtail-linux-amd64.zip
+unzip $PROMTAIL_NAME
+rm $PROMTAIL_NAME
 
 # Move promtail binary to /usr/local/bin
 sudo mv promtail-linux-amd64 /usr/local/bin/promtail
 
 sudo useradd --system promtail
-usermod -a -G adm promtail
+sudo usermod -a -G adm promtail
 
 sudo mkdir -p /etc/promtail
 
@@ -48,8 +54,8 @@ positions:
     filename: /tmp/positions.yaml
 
 clients:
-    - url: http://10.254.0.5:80/loki/api/v1/push
-
+    - url: http://10.254.0.5:8080/loki/api/v1/push
+        tenant_id: OpenStack
 
 scrape_configs:
   - job_name: maas-logs
@@ -80,13 +86,11 @@ After=network.target
  
 [Service] 
 Type=simple 
-User=root 
+User=promtail
 ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/promtail-config.yaml 
 Restart=on-failure 
 RestartSec=20 
-StandardOutput=append:/etc/promtail/logs/promtail.log 
-StandardError=append:/etc/promtail/logs/promtail.log 
- 
+
 [Install] 
 WantedBy=multi-user.target
 EOF

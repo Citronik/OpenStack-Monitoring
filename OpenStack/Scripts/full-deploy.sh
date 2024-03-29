@@ -255,6 +255,7 @@ wait_For_Resource() {
 		#echo "State: $STATE Status: $STATUS"
 	done
 	echo ""
+	sleep 60
 	echo "Resource is ready! :)"
 }
 
@@ -331,6 +332,7 @@ find_root_ca_dir() {
 		# placed in a location reachable by the clients in the snap.
 		ROOT_CA="/home/${USER}/snap/openstackclients/common/${MODEL_NAME}root-ca.crt"
 	fi
+	echo "Root ca certificate will be copied to: $ROOT_CA"
 }
 
 cert_Copy() {
