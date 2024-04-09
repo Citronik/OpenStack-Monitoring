@@ -1,0 +1,136 @@
+Model  Controller       Cloud/Region      Version  SLA          Timestamp
+kis    maas-controller  maas-one/default  2.9.35   unsupported  13:53:00+02:00
+
+App                     Version  Status  Scale  Charm                   Channel        Rev  Exposed  Message
+ceph-dashboard                   active      3  ceph-dashboard          quincy/stable   35  no       Unit is ready
+ceph-fs                 17.2.5   active      3  ceph-fs                 quincy/stable   57  no       Unit is ready
+ceph-mon                17.2.5   active      3  ceph-mon                quincy/stable  173  no       Unit is ready and clustered
+ceph-osd                17.2.5   active      3  ceph-osd                quincy/stable  559  no       Unit is ready (4 OSD)
+ceph-radosgw            17.2.5   active      1  ceph-radosgw            quincy/stable  526  no       Unit is ready
+cinder                  20.2.0   active      1  cinder                  yoga/stable    656  no       Unit is ready
+cinder-ceph             20.2.0   active      1  cinder-ceph             yoga/stable    527  no       Unit is ready
+cinder-mysql-router     8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+dashboard-mysql-router  8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+designate               14.0.2   active      1  designate               yoga/stable    140  no       Unit is ready
+designate-bind          9.16.48  active      1  designate-bind          yoga/stable    107  no       Unit is ready
+glance                  24.2.0   active      1  glance                  yoga/stable    562  no       Unit is ready
+glance-mysql-router     8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+heat                    18.0.1   active      1  heat                    yoga/stable    520  no       Unit is ready
+keystone                21.0.0   active      1  keystone                yoga/stable    647  no       Application Ready
+keystone-mysql-router   8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+memcached                        active      1  memcached               latest/stable   38  no       Unit is ready
+mysql-innodb-cluster    8.0.36   active      6  mysql-innodb-cluster    8.0/stable      56  no       Unit is ready: Mode: R/W, Cluster is ONLINE and can tolerate up to 2 failures.
+neutron-api             20.3.0   active      1  neutron-api             yoga/stable    560  no       Unit is ready
+neutron-api-plugin-ovn  20.3.0   active      1  neutron-api-plugin-ovn  yoga/stable     29  no       Unit is ready
+neutron-mysql-router    8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+nova-cloud-controller   25.1.1   active      1  nova-cloud-controller   yoga/stable    679  no       Unit is ready
+nova-compute            25.1.1   active      3  nova-compute            yoga/stable    681  no       Unit is ready
+nova-mysql-router       8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+ntp                     3.5      active      3  ntp                     latest/stable   50  no       chrony: Ready
+openstack-dashboard     22.1.0   active      1  openstack-dashboard     yoga/stable    589  no       Unit is ready
+ovn-central             22.03.2  active      3  ovn-central             22.03/stable   144  no       Unit is ready (leader: ovnnb_db, ovnsb_db northd: active)
+ovn-chassis             22.03.2  active      3  ovn-chassis             22.03/stable   163  no       Unit is ready
+placement               7.0.0    active      1  placement               yoga/stable     85  no       Unit is ready
+placement-mysql-router  8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+rabbitmq-server         3.8.2    active      5  rabbitmq-server         3.9/stable     182  no       Unit is ready and clustered
+vault                   1.7.9    active      1  vault                   1.7/stable     107  no       Unit is ready (active: true, mlock: disabled)
+vault-mysql-router      8.0.36   active      1  mysql-router            8.0/stable      90  no       Unit is ready
+
+Unit                         Workload  Agent  Machine   Public address  Ports               Message
+ceph-fs/0                    active    idle   1/lxd/0   10.11.1.21                          Unit is ready
+ceph-fs/1*                   active    idle   2/lxd/0   10.11.1.25                          Unit is ready
+ceph-fs/2                    active    idle   3/lxd/0   10.11.1.31                          Unit is ready
+ceph-mon/0                   active    idle   1/lxd/1   10.11.1.22                          Unit is ready and clustered
+  ceph-dashboard/0           active    idle             10.11.1.22                          Unit is ready
+ceph-mon/1*                  active    idle   2/lxd/1   10.11.1.24                          Unit is ready and clustered
+  ceph-dashboard/1*          active    idle             10.11.1.24                          Unit is ready
+ceph-mon/2                   active    idle   3/lxd/1   10.11.1.28                          Unit is ready and clustered
+  ceph-dashboard/2           active    idle             10.11.1.28                          Unit is ready
+ceph-osd/0                   active    idle   1         10.11.0.21                          Unit is ready (4 OSD)
+ceph-osd/1*                  active    idle   2         10.11.0.22                          Unit is ready (4 OSD)
+ceph-osd/2                   active    idle   3         10.11.0.23                          Unit is ready (4 OSD)
+ceph-radosgw/0*              active    idle   0/lxd/0   10.11.1.19      80/tcp              Unit is ready
+cinder/0*                    active    idle   0/lxd/1   10.11.1.13      8776/tcp            Unit is ready
+  cinder-ceph/0*             active    idle             10.11.1.13                          Unit is ready
+  cinder-mysql-router/0*     active    idle             10.11.1.13                          Unit is ready
+designate-bind/0*            active    idle   0/lxd/3   10.11.1.5                           Unit is ready
+designate/0*                 active    idle   0/lxd/2   10.11.1.15      9001/tcp            Unit is ready
+glance/0*                    active    idle   0/lxd/4   10.11.1.2       9292/tcp            Unit is ready
+  glance-mysql-router/0*     active    idle             10.11.1.2                           Unit is ready
+heat/0*                      active    idle   0/lxd/5   10.11.1.0       8000/tcp,8004/tcp   Unit is ready
+keystone/0*                  active    idle   0/lxd/6   10.11.1.1       5000/tcp            Unit is ready
+  keystone-mysql-router/0*   active    idle             10.11.1.1                           Unit is ready
+memcached/0*                 active    idle   0/lxd/7   10.11.1.14      11211/tcp           Unit is ready
+mysql-innodb-cluster/0       active    idle   0/lxd/8   10.11.1.3                           Unit is ready: Mode: R/W, Cluster is ONLINE and can tolerate up to 2 failures.
+mysql-innodb-cluster/1       active    idle   0/lxd/9   10.11.1.18                          Unit is ready: Mode: R/O, Cluster is ONLINE and can tolerate up to 2 failures.
+mysql-innodb-cluster/2*      active    idle   0/lxd/10  10.11.1.7                           Unit is ready: Mode: R/O, Cluster is ONLINE and can tolerate up to 2 failures.
+mysql-innodb-cluster/3       active    idle   1/lxd/5   10.11.1.36                          Unit is ready: Mode: R/O, Cluster is ONLINE and can tolerate up to 2 failures.
+mysql-innodb-cluster/4       active    idle   2/lxd/5   10.11.1.37                          Unit is ready: Mode: R/O, Cluster is ONLINE and can tolerate up to 2 failures.
+mysql-innodb-cluster/5       active    idle   3/lxd/5   10.11.1.38                          Unit is ready: Mode: R/O, Cluster is ONLINE and can tolerate up to 2 failures.
+neutron-api/0*               active    idle   0/lxd/11  10.11.1.6       9696/tcp            Unit is ready
+  neutron-api-plugin-ovn/0*  active    idle             10.11.1.6                           Unit is ready
+  neutron-mysql-router/0*    active    idle             10.11.1.6                           Unit is ready
+nova-cloud-controller/0*     active    idle   0/lxd/12  10.11.1.16      8774/tcp,8775/tcp   Unit is ready
+  nova-mysql-router/0*       active    idle             10.11.1.16                          Unit is ready
+nova-compute/0               active    idle   1         10.11.0.21                          Unit is ready
+  ntp/0                      active    idle             10.11.0.21      123/udp             chrony: Ready
+  ovn-chassis/0              active    idle             10.11.0.21                          Unit is ready
+nova-compute/1*              active    idle   2         10.11.0.22                          Unit is ready
+  ntp/1*                     active    idle             10.11.0.22      123/udp             chrony: Ready
+  ovn-chassis/1*             active    idle             10.11.0.22                          Unit is ready
+nova-compute/2               active    idle   3         10.11.0.23                          Unit is ready
+  ntp/2                      active    idle             10.11.0.23      123/udp             chrony: Ready
+  ovn-chassis/2              active    idle             10.11.0.23                          Unit is ready
+openstack-dashboard/0*       active    idle   0/lxd/13  10.11.1.4       80/tcp,443/tcp      Unit is ready
+  dashboard-mysql-router/0*  active    idle             10.11.1.4                           Unit is ready
+ovn-central/0                active    idle   0/lxd/14  10.11.1.8       6641/tcp,6642/tcp   Unit is ready (leader: ovnnb_db, ovnsb_db northd: active)
+ovn-central/1*               active    idle   0/lxd/15  10.11.1.9       6641/tcp,6642/tcp   Unit is ready
+ovn-central/2                active    idle   0/lxd/16  10.11.1.10      6641/tcp,6642/tcp   Unit is ready
+placement/0*                 active    idle   0/lxd/17  10.11.1.17      8778/tcp            Unit is ready
+  placement-mysql-router/0*  active    idle             10.11.1.17                          Unit is ready
+rabbitmq-server/0*           active    idle   0/lxd/18  10.11.1.11      5672/tcp,15672/tcp  Unit is ready and clustered
+rabbitmq-server/1            active    idle   1/lxd/4   10.11.1.32      5672/tcp,15672/tcp  Unit is ready and clustered
+rabbitmq-server/2            active    idle   2/lxd/4   10.11.1.34      5672/tcp,15672/tcp  Unit is ready and clustered
+rabbitmq-server/3            active    idle   3/lxd/4   10.11.1.35      5672/tcp,15672/tcp  Unit is ready and clustered
+rabbitmq-server/4            active    idle   3/lxd/7   10.11.1.67      5672/tcp,15672/tcp  Unit is ready and clustered
+vault/0*                     active    idle   0/lxd/19  10.11.1.12      8200/tcp            Unit is ready (active: true, mlock: disabled)
+  vault-mysql-router/0*      active    idle             10.11.1.12                          Unit is ready
+
+Machine   State    Address     Inst id               Series  AZ       Message
+0         started  10.11.0.11  controller            focal   default  Deployed
+0/lxd/0   started  10.11.1.19  juju-a6e58e-0-lxd-0   focal   default  Container started
+0/lxd/1   started  10.11.1.13  juju-a6e58e-0-lxd-1   focal   default  Container started
+0/lxd/2   started  10.11.1.15  juju-a6e58e-0-lxd-2   focal   default  Container started
+0/lxd/3   started  10.11.1.5   juju-a6e58e-0-lxd-3   focal   default  Container started
+0/lxd/4   started  10.11.1.2   juju-a6e58e-0-lxd-4   focal   default  Container started
+0/lxd/5   started  10.11.1.0   juju-a6e58e-0-lxd-5   focal   default  Container started
+0/lxd/6   started  10.11.1.1   juju-a6e58e-0-lxd-6   focal   default  Container started
+0/lxd/7   started  10.11.1.14  juju-a6e58e-0-lxd-7   focal   default  Container started
+0/lxd/8   started  10.11.1.3   juju-a6e58e-0-lxd-8   focal   default  Container started
+0/lxd/9   started  10.11.1.18  juju-a6e58e-0-lxd-9   focal   default  Container started
+0/lxd/10  started  10.11.1.7   juju-a6e58e-0-lxd-10  focal   default  Container started
+0/lxd/11  started  10.11.1.6   juju-a6e58e-0-lxd-11  focal   default  Container started
+0/lxd/12  started  10.11.1.16  juju-a6e58e-0-lxd-12  focal   default  Container started
+0/lxd/13  started  10.11.1.4   juju-a6e58e-0-lxd-13  focal   default  Container started
+0/lxd/14  started  10.11.1.8   juju-a6e58e-0-lxd-14  focal   default  Container started
+0/lxd/15  started  10.11.1.9   juju-a6e58e-0-lxd-15  focal   default  Container started
+0/lxd/16  started  10.11.1.10  juju-a6e58e-0-lxd-16  focal   default  Container started
+0/lxd/17  started  10.11.1.17  juju-a6e58e-0-lxd-17  focal   default  Container started
+0/lxd/18  started  10.11.1.11  juju-a6e58e-0-lxd-18  focal   default  Container started
+0/lxd/19  started  10.11.1.12  juju-a6e58e-0-lxd-19  focal   default  Container started
+1         started  10.11.0.21  compute-01            focal   default  Deployed
+1/lxd/0   started  10.11.1.21  juju-a6e58e-1-lxd-0   focal   default  Container started
+1/lxd/1   started  10.11.1.22  juju-a6e58e-1-lxd-1   focal   default  Container started
+1/lxd/4   started  10.11.1.32  juju-a6e58e-1-lxd-4   focal   default  Container started
+1/lxd/5   started  10.11.1.36  juju-a6e58e-1-lxd-5   focal   default  Container started
+2         started  10.11.0.22  compute-02            focal   default  Deployed
+2/lxd/0   started  10.11.1.25  juju-a6e58e-2-lxd-0   focal   default  Container started
+2/lxd/1   started  10.11.1.24  juju-a6e58e-2-lxd-1   focal   default  Container started
+2/lxd/4   started  10.11.1.34  juju-a6e58e-2-lxd-4   focal   default  Container started
+2/lxd/5   started  10.11.1.37  juju-a6e58e-2-lxd-5   focal   default  Container started
+3         started  10.11.0.23  compute-03            focal   default  Deployed
+3/lxd/0   started  10.11.1.31  juju-a6e58e-3-lxd-0   focal   default  Container started
+3/lxd/1   started  10.11.1.28  juju-a6e58e-3-lxd-1   focal   default  Container started
+3/lxd/4   started  10.11.1.35  juju-a6e58e-3-lxd-4   focal   default  Container started
+3/lxd/5   started  10.11.1.38  juju-a6e58e-3-lxd-5   focal   default  Container started
+3/lxd/7   started  10.11.1.67  juju-a6e58e-3-lxd-7   focal   default  Container started

@@ -2,3 +2,4 @@ partial
 bundles
 .data
 .*/
+.env

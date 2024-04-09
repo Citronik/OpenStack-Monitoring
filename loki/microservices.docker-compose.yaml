@@ -66,20 +66,6 @@ services:
     networks:
       - loki
 
-  # for testing purposes only, disable in production
-  # log-generator:
-  #   image: mingrammer/flog
-  #   command:
-  #     - --loop
-  #     - --format=json
-  #     - --number=10 # number of log lines to generate per second
-  #     - --delay=100ms # delay between log lines
-  #     - --output=/var/log/generated-logs.txt
-  #     - --overwrite
-  #     - --type=log
-  #   volumes:
-  #     - ./.loki/:/var/log/
-
   promtail:
     image: grafana/promtail:2.9.2
     volumes:
@@ -102,8 +88,8 @@ services:
         mkdir -p /data/loki-ruler &&
         minio server --address "0.0.0.0:9000" --console-address "0.0.0.0:9001" /data
     environment:
-      - MINIO_ROOT_USER=loki
-      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_PROMETHEUS_AUTH_TYPE=public
       - MINIO_UPDATE=off
     ports:
@@ -161,6 +147,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      - minio
     deploy:
       mode: replicated
       replicas: 3
@@ -188,6 +176,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      - minio
     deploy:
       mode: replicated
       replicas: 3
@@ -216,6 +206,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      - minio
     deploy:
       mode: replicated
       replicas: 3
@@ -230,5 +222,21 @@ services:
       - "./config:/config"
       - alertmanager-data:/data
     command: --config.file=/config/alertmanager.yaml --log.level=debug
+    depends_on:
+      - minio
     networks:
       - loki
+
+  # for testing purposes only, disable in production
+  # log-generator:
+  #   image: mingrammer/flog
+  #   command:
+  #     - --loop
+  #     - --format=json
+  #     - --number=10 # number of log lines to generate per second
+  #     - --delay=100ms # delay between log lines
+  #     - --output=/var/log/generated-logs.txt
+  #     - --overwrite
+  #     - --type=log
+  #   volumes:
+  #     - ./.loki/:/var/log/
