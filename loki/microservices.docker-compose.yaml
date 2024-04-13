@@ -114,13 +114,22 @@ services:
       - -euc
       - /docker-entrypoint.sh nginx -g "daemon off;"
     ports:
-      - "8080:80"
+      - "80:80"
       - "3100"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/healthy"]
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      - loki-read
+      - loki-write
+      - loki-backend
+      - promtail
+      - prometheus
+      - grafana
+      - alertmanager
+      - minio
     networks:
       - loki
 
@@ -147,6 +156,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     depends_on:
       - minio
     deploy:
@@ -176,6 +188,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     depends_on:
       - minio
     deploy:
@@ -206,6 +221,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     depends_on:
       - minio
     deploy:
