@@ -274,6 +274,10 @@ def installPromtail(machine: JujuMachine) -> bool:
         # Copy installation script and config file to the remote machine
         subprocess.run(["juju", "scp", PROMTAIL_SCRIPT_PATH, f"{machine.name}:/tmp/promtail_install.sh"], check=True)
 
+        logging.info(f"removing old promtail instance...")
+        subprocess.run(["juju", "scp", 'promtail-remove.sh', f"{machine.name}:/tmp/promtail-remove.sh"], check=True)
+        remove_command = f"sudo bash /tmp/promtail-remove.sh && rm /tmp/promtail-remove.sh"
+        install_result = subprocess.run(["juju", "run", "--machine", machine.name, remove_command], capture_output=True, text=True)
         # Run the installation script via Juju
         install_command = f"sudo bash /tmp/promtail_install.sh && rm /tmp/promtail_install.sh"
         install_result = subprocess.run(["juju", "run", "--machine", machine.name, install_command], capture_output=True, text=True)
