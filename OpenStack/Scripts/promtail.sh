@@ -44,7 +44,7 @@ sudo usermod -a -G adm promtail
 sudo mkdir -p /etc/promtail
 
 # Create promtail configuration file
-touch /etc/promtail/promtail-config.yaml
+sudo touch /etc/promtail/promtail-config.yaml
 
 # Create promtail logs directory
 sudo mkdir -p /var/log/promtail/

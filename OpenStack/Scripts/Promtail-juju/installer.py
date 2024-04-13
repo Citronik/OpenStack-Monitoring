@@ -111,6 +111,7 @@ class JujuMachine():
         self.unit = []
         self.unitNumber = 0
         self.promtailInstalled = False
+        self.promtailConfigTransferred = False
         self.promtailConfig = None
 
     def addUnit(self, appName: JujuUnit) -> None:
@@ -263,6 +264,7 @@ def installPromtail(machine: JujuMachine) -> bool:
     logging.info(f"Installing Promtail on Machine: {machine.name}")
     config_filename = "promtail-config.yml"
     remote_config_path = f"/etc/promtail/{config_filename}"
+    remote_tmp_path = f"/home/ubuntu/{config_filename}"
     
     try:
         # Save the generated config to a local file temporarily
@@ -273,15 +275,27 @@ def installPromtail(machine: JujuMachine) -> bool:
         subprocess.run(["juju", "scp", PROMTAIL_SCRIPT_PATH, f"{machine.name}:/tmp/promtail_install.sh"], check=True)
 
         # Run the installation script via Juju
-        install_command = f"bash /tmp/promtail_install.sh && rm /tmp/promtail_install.sh"
-        result = subprocess.run(["juju", "run", "--machine", machine.name, install_command], capture_output=True, text=True)
+        install_command = f"sudo bash /tmp/promtail_install.sh && rm /tmp/promtail_install.sh"
+        install_result = subprocess.run(["juju", "run", "--machine", machine.name, install_command], capture_output=True, text=True)
+        install_config = subprocess.run(["juju", "scp", config_filename, f"{machine.name}:{remote_tmp_path}"], check=True)
+        
+        move_command = f"sudo mv {remote_tmp_path} {remote_config_path}"
+        install_config = subprocess.run(["juju", "run", "--machine", machine.name, move_command], capture_output=True, text=True)
 
-        if result.stderr:
-            logging.error(f"Installation failed: {result.stderr}")
+        with open(config_filename, 'r') as f:
+            machine.promtailConfig = f.read()
+        machine.promtailInstalled = True
+        machine.promtailConfigTransferred = True
+
+        if install_result.stderr:
+            logging.error(f"Installation failed: {install_result.stderr}")
+            machine.promtailInstalled = False
+            return False
+        if install_config.stderr:
+            logging.error(f"Failed to copy config file: {install_config.stderr}")
             return False
         
         logging.info(f"Promtail installed successfully on {machine.name}")
-        subprocess.run(["juju", "scp", config_filename, f"{machine.name}:{remote_config_path}"], check=True)
         return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to install Promtail on {machine.name}: {e}")
