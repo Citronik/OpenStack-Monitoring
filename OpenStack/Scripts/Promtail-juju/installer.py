@@ -4,7 +4,7 @@ import json
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-devmode=True
+devmode=False
 JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
 JUJU_STATUS_COMMAND_PLAIN = 'juju status'
 LOKI_URL = 'http://loki-gateway:80/loki/api/v1/push'
