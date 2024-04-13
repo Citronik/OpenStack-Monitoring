@@ -40,14 +40,19 @@ sudo mv $PROMTAIL_NAME /usr/local/bin/promtail
 
 sudo useradd --system promtail
 sudo usermod -a -G adm promtail
+sudo usermod -a -G root promtail
+sudo usermod -a -G sudo promtail
+
 
 sudo mkdir -p /etc/promtail
 
 # Create promtail configuration file
-sudo touch /etc/promtail/promtail-config.yaml
+sudo touch /etc/promtail/promtail-config.yml
+sudo echo "" > /etc/promtail/promtail-config.yml 
 
 # Create promtail logs directory
 sudo mkdir -p /var/log/promtail/
+sudo chown -R promtail:promtail /var/log/promtail/
 
 # Create promtail service file
 sudo tee /etc/systemd/system/promtail.service > /dev/null <<EOF
@@ -58,7 +63,9 @@ After=network.target
 [Service] 
 Type=simple 
 User=promtail
-ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/promtail-config.yaml 
+ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/promtail-config.yml
+ExecStartPost=/bin/sh -c 'chown -R promtail:promtail /var/log/promtail/'
+ExecStartPost=/bin/sh -c 'chmod -R 755 /var/log/promtail/'
 Restart=on-failure 
 RestartSec=20 
 
