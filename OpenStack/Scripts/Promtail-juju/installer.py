@@ -9,7 +9,7 @@ JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
 JUJU_STATUS_COMMAND_PLAIN = 'juju status'
 LOKI_URL = 'http://10.254.0.5/loki/api/v1/push'
 
-PROMTAIL_SCRIPT_PATH = "../promtail.sh"
+PROMTAIL_SCRIPT_PATH = "./promtail.sh"
 
 with open(PROMTAIL_SCRIPT_PATH, 'r') as file:
     PROMTAIL_INSTALL_SCRIPT = file.read()
