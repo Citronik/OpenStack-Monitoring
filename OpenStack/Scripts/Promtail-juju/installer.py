@@ -253,6 +253,7 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
             logging.debug(f"Log Path: {logPath}")
             if logPath in config:
                 continue
+            logPath = f"{logPath}*.log"
             config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
 
     logging.info(f"Promtail Config prepared for Machine: {machine.name}")
@@ -298,7 +299,12 @@ def installPromtail(machine: JujuMachine) -> bool:
         if install_config.stderr:
             logging.error(f"Failed to copy config file: {install_config.stderr}")
             return False
-        
+        start_command = "sudo systemctl start promtail"
+        start_config = subprocess.run(["juju", "run", "--machine", machine.name, start_command], capture_output=True, text=True)
+        if start_config.stderr:
+            logging.error(f"Failed to start Promtail: {start_config.stderr}")
+            return False
+
         logging.info(f"Promtail installed successfully on {machine.name}")
         return True
     except subprocess.CalledProcessError as e:
