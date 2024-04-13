@@ -21,7 +21,6 @@ elif [ "$MACHINE_TYPE" == "aarch64" ]; then
     MACHINE_TYPE="arm64"
 else
     echo "Unsupported machine type: $MACHINE_TYPE"
-    exit 1
 fi
 
 
@@ -31,12 +30,13 @@ sudo apt-get install -y wget
 
 # Download promtail binary
 PROMTAIL_NAME="promtail-${KERNEL_NAME}-${MACHINE_TYPE}.zip"
-wget https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/$PROMTAIL_NAME # https://github.com/grafana/loki/releases/download/v2.9.5/promtail-linux-amd64.zip
+wget https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/$PROMTAIL_NAME > /dev/null # https://github.com/grafana/loki/releases/download/v2.9.5/promtail-linux-amd64.zip
 unzip $PROMTAIL_NAME
 rm $PROMTAIL_NAME
 
+PROMTAIL_NAME="promtail-${KERNEL_NAME}-${MACHINE_TYPE}"
 # Move promtail binary to /usr/local/bin
-sudo mv promtail-linux-amd64 /usr/local/bin/promtail
+sudo mv $PROMTAIL_NAME /usr/local/bin/promtail
 
 sudo useradd --system promtail
 sudo usermod -a -G adm promtail
@@ -44,36 +44,7 @@ sudo usermod -a -G adm promtail
 sudo mkdir -p /etc/promtail
 
 # Create promtail configuration file
-sudo tee /etc/promtail/promtail-config.yaml > /dev/null <<EOF
-server:
-    http_listen_port: 9080
-    grpc_listen_port: 0
-    log_level: "info"
-
-positions:
-    filename: /tmp/positions.yaml
-
-clients:
-    - url: http://10.254.0.5:8080/loki/api/v1/push
-        tenant_id: OpenStack
-
-scrape_configs:
-  - job_name: maas-logs
-    static_config:
-      - targets:
-          - localhost
-        labels:
-          job: maas-logs
-          __path__: /var/snap/maas/common/log/*.log.*
-    pipeline_stages:
-      - json:
-          expressions:
-            http_method: 'method'
-            http_status: "status"
-      - labels:
-          http_method:
-          http_status:
-EOF
+touch /etc/promtail/promtail-config.yaml
 
 # Create promtail logs directory
 sudo mkdir -p /var/log/promtail/
@@ -98,6 +69,5 @@ EOF
 # Enable and start promtail service
 sudo systemctl daemon-reload
 sudo systemctl enable promtail
-sudo systemctl start promtail
 
 echo "Promtail has been installed and started successfully."

@@ -8,10 +8,10 @@ datasources:
       httpHeaderValue1: "docker"
 #      httpHeaderValue2: "OpenStack"
     editable: true
-    isDefault: true
-    name: loki
+    isDefault: false
+    name: loki-docker
     type: loki
-    uid: loki
+    uid: loki-docker
     url: http://loki-gateway
     version: 1
 
@@ -24,9 +24,9 @@ datasources:
       httpHeaderValue2: "OpenStack"
     editable: true
     isDefault: true
-    name: loki
+    name: loki-openstack
     type: loki
-    uid: loki
+    uid: loki-openstack
     url: http://loki-gateway
     version: 1
 

@@ -92,8 +92,8 @@ print_help() {
     printf "    %-30s %s\n" "--init-openstack" "initialize OpenStack"
     printf "    %-30s %s\n" "--destroy-model <val>" "destroy the model"
     printf "    %-30s %s\n" "--delete-model-resources" "delete all the deployed applications and machines"
-    printf "    %-30s %s\n" "--help -h" "print this help message"
     printf "    %-30s %s\n" "--version -v" "print the version of this script"
+    printf "    %-30s %s\n" "--help -h" "print this help message"
     printf "[-----------------------------------------------------------]\n"
 }
 

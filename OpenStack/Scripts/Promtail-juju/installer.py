@@ -7,6 +7,39 @@ logging.basicConfig(level=logging.DEBUG)
 devmode=True
 JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
 JUJU_STATUS_COMMAND_PLAIN = 'juju status'
+LOKI_URL = 'http://loki-gateway:80/loki/api/v1/push'
+
+PROMTAIL_SCRIPT_PATH = "../promtail.sh"
+
+with open(PROMTAIL_SCRIPT_PATH, 'r') as file:
+    PROMTAIL_INSTALL_SCRIPT = file.read()
+
+#PROMTAIL_INSTALL_SCRIPT = script
+
+PROMTAIL_CONFIG_MAIN = """
+server:
+    http_listen_port: 9080
+    grpc_listen_port: 0
+    log_level: "info"
+
+positions:
+    filename: /tmp/positions.yaml
+
+clients:
+    - url: {LOKI_URL}
+      tenant_id: OpenStack
+
+scrape_configs:
+"""
+PROMTAIL_CONFIG_JOB = """
+  - job_name: {SERVICE_NAME}-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: {SERVICE_NAME}
+          __path__: {SERVICE_LOG_PATH}
+"""
 
 LOG_DIRECTORY_MAPPING = {
     'ceph-fs': '/var/log/ceph/',
@@ -61,6 +94,14 @@ class JujuUnit():
     
     def __str__(self) -> str:
         return f"Unit: {self.unit} - LXD: {self.lxd} - Machine IP: {self.machineIP}"
+    
+    def __json__(self):
+        return {
+            "name": self.appNameFromUnit(),
+            "unit": self.unit,
+            "lxd": self.lxd,
+            "machineIP": self.machineIP
+        }
 
 class JujuMachine():
     def __init__(self, name, hostname=None, ipAddresses=None) -> None:
@@ -69,6 +110,8 @@ class JujuMachine():
         self.ipAddresses = ipAddresses
         self.unit = []
         self.unitNumber = 0
+        self.promtailInstalled = False
+        self.promtailConfig = None
 
     def addUnit(self, appName: JujuUnit) -> None:
         self.unit.append(appName)
@@ -86,6 +129,14 @@ class JujuMachine():
             return f"Machine: {self.name} - {self.hostname} - {self.ipAddresses} - Apps: { self.unitNumber }"
         units_str = "\n".join([str(unit) for unit in self.unit])
         return f"-"*70 + f"\nMachine: {self.name} - {self.hostname} - {self.ipAddresses} - Apps: {self.unitNumber} \n[\n{units_str}\n]\n" + f"-"*70 
+    
+    def __json__(self):
+        return {
+            "machine": self.name,
+            "hostname": self.hostname,
+            "ipAddresses": self.ipAddresses,
+            "unit": [unit.__json__() for unit in self.unit]
+        }
 
 
 
@@ -158,7 +209,7 @@ def parseJujuAppsToMachinesFromStatus(status, machines):
     apps = []
     lines = 0
     for line in status.splitlines():
-        print(f"Line num: {lines}")
+        # print(f"Line num: {lines}")
         lines += 1
         if line.startswith("Unit") and not isUnit:
             logging.debug(f"Unit line: {line}")
@@ -168,10 +219,7 @@ def parseJujuAppsToMachinesFromStatus(status, machines):
             logging.debug(f"Unit finished: {line}")
             isUnit = False
             break
-        if isUnit:
-            # if len(line) == 0:
-            #     continue
-            
+        if isUnit:            
             match = pattern.search(line.strip())
             if match:
                 logging.debug(f"   mathched line: {line}")
@@ -182,16 +230,62 @@ def parseJujuAppsToMachinesFromStatus(status, machines):
                 if machine == "No machine":
                     machine = unitBefore.lxd
                 logging.debug(f"      {newUnit}")
-                #logging.debug(f"Machine: {machines[ip_address]}")
                 machines[ip_address].addUnit(newUnit)
                 apps.append(newUnit)
                 unitBefore = newUnit
-    logging.info(f"Juju Apps parsed to Machines [{len(apps)}]")
-    #logging.info(f"Juju Apps parsed to Machines [{len(machines)}]")
-    logging.info(f"-"*50)
 
+    logging.info(f"Juju [{len(apps)}] Apps parsed to Machines")
+
+def preparePromtailConfig(machine: JujuMachine) -> str:
+    logging.info(f"Preparing Promtail Config for Machine: {machine.name}")
+    if len(machine.unit) == 0:
+        logging.info(f"No Units found for Machine: {machine.name}")
+        return None
+    config = PROMTAIL_CONFIG_MAIN.format(LOKI_URL=LOKI_URL)
+    logging.debug(f"Units {len(machine.unit)}")
+    logging.debug(f"Units: {machine.unit}")
+    for unit in machine.unit:
+        appName = unit.appNameFromUnit()
+        logging.debug(f"AppName: {appName}")
+        if appName in LOG_DIRECTORY_MAPPING:
+            logPath = LOG_DIRECTORY_MAPPING[appName]
+            logging.debug(f"Log Path: {logPath}")
+            if logPath in config:
+                continue
+            config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
+
+    logging.info(f"Promtail Config prepared for Machine: {machine.name}")
+    logging.debug(f"Promtail Config: {config}")
+    return config
+            
+def installPromtail(machine: JujuMachine) -> bool:
+    """ Install Promtail on a machine"""
+    logging.info(f"Installing Promtail on Machine: {machine.name}")
+    config_filename = "promtail-config.yml"
+    remote_config_path = f"/etc/promtail/{config_filename}"
     
+    try:
+        # Save the generated config to a local file temporarily
+        with open(config_filename, 'w') as f:
+            f.write(preparePromtailConfig(machine))
 
+        # Copy installation script and config file to the remote machine
+        subprocess.run(["juju", "scp", PROMTAIL_SCRIPT_PATH, f"{machine.name}:/tmp/promtail_install.sh"], check=True)
+
+        # Run the installation script via Juju
+        install_command = f"bash /tmp/promtail_install.sh && rm /tmp/promtail_install.sh"
+        result = subprocess.run(["juju", "run", "--machine", machine.name, install_command], capture_output=True, text=True)
+
+        if result.stderr:
+            logging.error(f"Installation failed: {result.stderr}")
+            return False
+        
+        logging.info(f"Promtail installed successfully on {machine.name}")
+        subprocess.run(["juju", "scp", config_filename, f"{machine.name}:{remote_config_path}"], check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to install Promtail on {machine.name}: {e}")
+        return False
 
 if __name__ == "__main__":
     print("Running Promtail Juju Installer...")
@@ -202,16 +296,25 @@ if __name__ == "__main__":
     allApps = status['applications'].items()
 
     jujuMachines = parseJujuMachinesFromJSON(allMachines)
-    ##Parsing Apps using JSON
-    #allApps = status['applications'].items()
-    #jujuApps = parseJujuAppsFromJSON(allApps)
 
     ###Parsing Apps using status command
     statusPlain = juju_cmnd(JUJU_STATUS_COMMAND_PLAIN)
     #logging.debug(f"Status Plain: {statusPlain}")
     parseJujuAppsToMachinesFromStatus(statusPlain, jujuMachines)
+    # for machine in jujuMachines.values():
+    #     print(f"{machine}")
+    ### Prepare Config and install Promtail
     for machine in jujuMachines.values():
-        print(f"{machine}")
-    #print(jujuMachines)
+        promtailConfig = preparePromtailConfig(machine)
+        if promtailConfig:
+            # Save the generated config to a local file temporarily
+            with open("promtail-config.yml", 'w') as f:
+                f.write(promtailConfig)
+
+            if installPromtail(machine):
+                machine.promtailInstalled = True
+                machine.promtailConfig = promtailConfig
+        
+        print("-"*50)
 
     print("Promtail Juju Installer Finished...")
