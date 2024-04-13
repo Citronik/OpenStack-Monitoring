@@ -44,37 +44,37 @@ PROMTAIL_CONFIG_JOB = """
 LOG_DIRECTORY_MAPPING = {
     'ceph-fs': '/var/log/ceph/',
     'ceph-mon': '/var/log/ceph/',
-    'ceph-dashboard': '/var/log/ceph/',  # Assuming it follows ceph's general logging
+    'ceph-dashboard': '/var/log/ceph/',
     'ceph-osd': '/var/log/ceph/',
     'ceph-radosgw': '/var/log/ceph/',
     'cinder': '/var/log/cinder/',
-    'cinder-ceph': '/var/log/cinder/',  # Assuming it logs with cinder
-    'cinder-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'cinder-ceph': '/var/log/cinder/',
+    'cinder-mysql-router': '/var/log/mysql/',
     'designate': '/var/log/designate/',
-    'designate-bind': '/var/log/designate/',  # Assuming Bind logs are collected with Designate
+    'designate-bind': '/var/log/designate/',
     'glance': '/var/log/glance/',
-    'glance-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'glance-mysql-router': '/var/log/mysql/',
     'heat': '/var/log/heat/',
     'keystone': '/var/log/keystone/',
-    'keystone-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
-    'memcached': '/var/log/memcached/',  # Check syslog if not directly available
+    'keystone-mysql-router': '/var/log/mysql/',
+    'memcached': '/var/log/memcached/',
     'mysql-innodb-cluster': '/var/log/mysql/',
     'neutron-api': '/var/log/neutron/',
-    'neutron-api-plugin-ovn': '/var/log/neutron/',  # Assuming OVN plugin logs are with Neutron
-    'neutron-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'neutron-api-plugin-ovn': '/var/log/neutron/',
+    'neutron-mysql-router': '/var/log/mysql/',
     'nova-cloud-controller': '/var/log/nova/',
     'nova-compute': '/var/log/nova/',
-    'nova-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
-    'ntp': '/var/log/chrony/',  # Or use `journalctl -u chrony` for systems using systemd
-    'ovn-chassis': '/var/log/ovn/',  # Assuming general OVN logging
+    'nova-mysql-router': '/var/log/mysql/',
+    'ntp': '/var/log/chrony/',
+    'ovn-chassis': '/var/log/ovn/',
     'openstack-dashboard': '/var/log/horizon/',
-    'dashboard-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'dashboard-mysql-router': '/var/log/mysql/',
     'ovn-central': '/var/log/ovn/',
     'placement': '/var/log/placement/',
-    'placement-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'placement-mysql-router': '/var/log/mysql/',
     'rabbitmq-server': '/var/log/rabbitmq/',
     'vault': '/var/log/vault/',
-    'vault-mysql-router': '/var/log/mysql/',  # General MySQL logging, adjust if different for the router
+    'vault-mysql-router': '/var/log/mysql/',
 }
 
 
@@ -299,16 +299,47 @@ def installPromtail(machine: JujuMachine) -> bool:
         if install_config.stderr:
             logging.error(f"Failed to copy config file: {install_config.stderr}")
             return False
-        start_command = "sudo systemctl start promtail"
-        start_config = subprocess.run(["juju", "run", "--machine", machine.name, start_command], capture_output=True, text=True)
-        if start_config.stderr:
-            logging.error(f"Failed to start Promtail: {start_config.stderr}")
-            return False
 
         logging.info(f"Promtail installed successfully on {machine.name}")
         return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to install Promtail on {machine.name}: {e}")
+        return False
+    
+def checkPromtailPermisson(machine: JujuMachine):
+    logging.info(f"Checking Promtail Permission on Machine: {machine.name}")
+    try:
+        for unit in machine.unit:
+            command = f"sudo ls -dlha {LOG_DIRECTORY_MAPPING[unit.appNameFromUnit()]} "
+            command += "| awk '{print $4}'"
+            result = subprocess.run(["juju", "run", "--machine", machine.name, command], capture_output=True, text=True)
+            
+            if result.stderr:
+                logging.error(f"Failed to check permission: {result.stderr}")
+                return False
+            
+            group = result.stdout.strip()
+            adjustPromtaiPermission = f"sudo usermod -aG {group} promtail"
+
+            result = subprocess.run(["juju", "run", "--machine", machine.name, adjustPromtaiPermission], capture_output=True, text=True)
+
+            if result.stderr:
+                logging.error(f"Failed to adjust permission: {result.stderr}")
+                return False
+            
+        command = "sudo systemctl restart promtail"
+        result = subprocess.run(["juju", "run", "--machine", machine.name, command], capture_output=True, text=True)
+        if result.stderr:
+            logging.error(f"Failed to restart promtail: {result.stderr}")
+            return False
+        command = "sudo systemctl status promtail"
+        result = subprocess.run(["juju", "run", "--machine", machine.name, command], capture_output=True, text=True)
+
+        logging.info(f"Promtail status: {result.stdout}")
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to check Promtail status on {machine.name}: {e}")
         return False
 
 if __name__ == "__main__":
@@ -338,6 +369,7 @@ if __name__ == "__main__":
             if installPromtail(machine):
                 machine.promtailInstalled = True
                 machine.promtailConfig = promtailConfig
+                checkPromtailPermisson(machine)
         
         print("-"*50)
 

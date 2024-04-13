@@ -62,7 +62,7 @@ After=network.target
  
 [Service] 
 Type=simple 
-User=promtail
+User=root
 ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/promtail-config.yml
 ExecStartPost=/bin/sh -c 'chown -R promtail:promtail /var/log/promtail/'
 ExecStartPost=/bin/sh -c 'chmod -R 755 /var/log/promtail/'
