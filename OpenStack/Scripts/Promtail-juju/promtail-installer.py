@@ -68,7 +68,7 @@ LOG_DIRECTORY_MAPPING = {
     'mysql-innodb-cluster': '/var/log/mysql/',
     'neutron-api': '/var/log/neutron/',
     'neutron-api-plugin-ovn': '/var/log/neutron/',
-    'neutron-mysql-router': '/var/log/mysql/',
+    'neutron-mysql-router': '/var/log/neutron/',
     'nova-cloud-controller': '/var/log/nova/',
     'nova-compute': '/var/log/nova/',
     'nova-mysql-router': '/var/log/mysql/',
