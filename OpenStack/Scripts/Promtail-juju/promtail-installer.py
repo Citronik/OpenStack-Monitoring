@@ -60,6 +60,10 @@ LOG_DIRECTORY_MAPPING = {
     'keystone-mysql-router': '/var/log/mysql/',
     'manila': '/var/log/manila/',
     'manila-ganesha': '/var/log/manila/',
+    'manila-ganesha-hacluster': '/var/log/manila/',
+    'manila-hacluster': '/var/log/manila/',
+    'manila-ganesha-mysql-router': '/var/log/mysql/',
+    'manila-mysql-router': '/var/log/mysql/',
     'memcached': '/var/log/memcached/',
     'mysql-innodb-cluster': '/var/log/mysql/',
     'neutron-api': '/var/log/neutron/',
@@ -342,6 +346,9 @@ def checkPromtailPermisson(machine: JujuMachine):
         return True
 
     except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to check Promtail status on {machine.name}: {e}")
+        return False
+    except Exception as e:
         logging.error(f"Failed to check Promtail status on {machine.name}: {e}")
         return False
 
