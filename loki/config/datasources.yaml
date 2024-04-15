@@ -6,7 +6,7 @@ datasources:
       httpHeaderName1: "X-Scope-OrgID"
     secureJsonData:
       httpHeaderValue1: "docker"
-#      httpHeaderValue2: "OpenStack"
+      httpHeaderValue2: "OpenStack"
     editable: true
     isDefault: false
     name: loki-docker
@@ -15,20 +15,20 @@ datasources:
     url: http://loki-gateway
     version: 1
 
-  - access: proxy
-    basicAuth: false
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-    secureJsonData:
-#      httpHeaderValue1: "docker"
-      httpHeaderValue2: "OpenStack"
-    editable: true
-    isDefault: true
-    name: loki-openstack
-    type: loki
-    uid: loki-openstack
-    url: http://loki-gateway
-    version: 1
+#   - access: proxy
+#     basicAuth: false
+#     jsonData:
+#       httpHeaderName1: "X-Scope-OrgID"
+#     secureJsonData:
+# #      httpHeaderValue1: "docker"
+#       httpHeaderValue2: "OpenStack"
+#     editable: true
+#     isDefault: true
+#     name: loki-openstack
+#     type: loki
+#     uid: loki-openstack
+#     url: http://loki-gateway
+#     version: 1
 
   - access: proxy
     basicAuth: false

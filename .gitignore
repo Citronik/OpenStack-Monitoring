@@ -3,3 +3,4 @@ bundles
 .data
 .*/
 .env
+promtail-config.yml

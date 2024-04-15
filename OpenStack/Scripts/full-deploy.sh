@@ -287,12 +287,18 @@ wait_For_Resource() {
 
 wait_for_vault() {
 	wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
+	wait_For_Resource "juju status nova-compute | grep nova-compute/ | awk '{print \$2}'" "juju status nova-compute | grep nova-compute/ | awk '{print \$3}'" "active" "idle"
+	# wait for nova-cloud-controller
+	wait_For_Resource "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$2}'" "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$3}'" "active" "idle"
+	# wait for neutron-api
+	wait_For_Resource "juju status neutron-api | grep neutron-api/ | awk '{print \$2}'" "juju status neutron-api | grep neutron-api/ | awk '{print \$3}'" "active" "idle"
 	return 0
 }
 
 ### Break into the functions 
 initialize_vault() {
 	wait_for_vault 
+	sleep 60
 	VAULT_IP=$(juju status | grep vault/ | awk -F ' ' '{print $5}')
 	VAULT_PORT=$(juju status | grep vault/ | awk -F ' ' '{print $6}' | awk -F '/' '{print $1}')
 	VAULT_KEYS_FILE="$SCRIPT_BASE_PATH/vaultKeys.txt"
@@ -430,6 +436,7 @@ execute_Full_Deploy() {
 	create_Model $@
 	deploy_The_Charms $@
 	initialize_vault $@
+	
 	cert_Copy $@
 	cert_Export $@
 	init_Openstack $@

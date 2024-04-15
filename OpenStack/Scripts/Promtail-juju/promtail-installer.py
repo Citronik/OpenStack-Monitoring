@@ -3,7 +3,7 @@ import subprocess
 import json
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 ### Set
 devmode=False
 JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
@@ -130,9 +130,9 @@ class JujuMachine():
     
     def __str__(self) -> str:
         if self.unitNumber == 0:
-            return f"Machine: {self.name} - {self.hostname} - {self.ipAddresses} - Apps: { self.unitNumber }"
+            return f"{self.name} - {self.hostname} - {self.ipAddresses} - Apps: { self.unitNumber }"
         units_str = "\n".join([str(unit) for unit in self.unit])
-        return f"-"*70 + f"\nMachine: {self.name} - {self.hostname} - {self.ipAddresses} - Apps: {self.unitNumber} \n[\n{units_str}\n]\n" + f"-"*70 
+        return f"-"*70 + f"\n{self.name} - {self.hostname} - {self.ipAddresses} - Apps: {self.unitNumber} \n[\n{units_str}\n]\n" + f"-"*70 
     
     def __json__(self):
         return {
@@ -260,7 +260,7 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
             config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
 
     logging.info(f"Promtail Config prepared for Machine: {machine.name}")
-    # logging.debug(f"Promtail Config: {config}")
+    logging.(f"Promtail Config: {config}")
     return config
             
 def installPromtail(machine: JujuMachine) -> bool:
@@ -376,4 +376,5 @@ if __name__ == "__main__":
         
         print("-"*50)
 
+    
     print("Promtail Juju Installer Finished...")
