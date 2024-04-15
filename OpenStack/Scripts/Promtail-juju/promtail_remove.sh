@@ -33,3 +33,4 @@ sudo rm -rf /var/log/promtail
 sudo rm -rf /var/lib/promtail
 
 echo "Promtail has been successfully removed."
+exit 0

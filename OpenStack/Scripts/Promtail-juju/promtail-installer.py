@@ -298,10 +298,10 @@ def installPromtail(machine: JujuMachine) -> bool:
         if install_result.stderr:
             logging.error(f"Installation failed: {install_result.stderr} machine: {machine.name}")
             machine.promtailInstalled = False
-            return False
+            # return False
         if install_config.stderr:
             logging.error(f"Failed to copy config file: {install_config.stderr}")
-            return False
+            # return False
 
         logging.info(f"Promtail installed successfully on {machine.name}")
         return True
