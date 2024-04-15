@@ -30,7 +30,7 @@ sudo apt-get install -y wget
 
 # Download promtail binary
 PROMTAIL_NAME="promtail-${KERNEL_NAME}-${MACHINE_TYPE}.zip"
-wget https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/$PROMTAIL_NAME > /dev/null # https://github.com/grafana/loki/releases/download/v2.9.5/promtail-linux-amd64.zip
+wget -q https://github.com/grafana/loki/releases/download/${PROMTAIL_VERSION}/$PROMTAIL_NAME > /dev/null # https://github.com/grafana/loki/releases/download/v2.9.5/promtail-linux-amd64.zip
 unzip $PROMTAIL_NAME
 rm $PROMTAIL_NAME
 

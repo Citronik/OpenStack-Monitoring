@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! command -v promtail &>/dev/null; then
+    echo "Promtail is not installed."
+    exit 0
+fi
+
 # Stop Promtail service
 sudo systemctl stop promtail
 
