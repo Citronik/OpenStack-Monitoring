@@ -10,7 +10,7 @@ JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
 JUJU_STATUS_COMMAND_PLAIN = 'juju status'
 LOKI_URL = 'http://10.254.0.5/loki/api/v1/push'
 
-PROMTAIL_SCRIPT_PATH = "./promtail-install.sh"
+PROMTAIL_SCRIPT_PATH = "./promtail_install.sh"
 
 # with open(PROMTAIL_SCRIPT_PATH, 'r') as file:
     # PROMTAIL_INSTALL_SCRIPT = file.read()
@@ -260,7 +260,7 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
             config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
 
     logging.info(f"Promtail Config prepared for Machine: {machine.name}")
-    logging.(f"Promtail Config: {config}")
+    logging.debug(f"Promtail Config: {config}")
     return config
             
 def installPromtail(machine: JujuMachine) -> bool:

@@ -5,10 +5,8 @@ if command -v promtail &>/dev/null; then
     echo "Promtail is already installed."
     exit 0
 fi
-if command -v unzip &>/dev/null; then
-    echo "Unzip is already installed."
-else
-    sudo apt install unzip
+if ! command -v unzip &>/dev/null; then
+    sudo apt install unzip -y
 fi
 
 KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -21,6 +19,7 @@ elif [ "$MACHINE_TYPE" == "aarch64" ]; then
     MACHINE_TYPE="arm64"
 else
     echo "Unsupported machine type: $MACHINE_TYPE"
+    exit 1
 fi
 
 
@@ -78,3 +77,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable promtail
 
 echo "Promtail has been installed and started successfully."
+exit 0
