@@ -285,21 +285,34 @@ wait_For_Resource() {
 	echo "Resource is ready! :)"
 }
 
+wait_for_Message() {
+	echo $2
+	MESSAGE_CMD=$1
+	while ! eval "$MESSAGE_CMD"; do
+		echo -n "."
+		sleep 15
+		CURRENT_MESSAGE=$(eval $MESSAGE_CMD)
+	done
+	printf "DONE! :)"
+}
+
 wait_for_vault() {
 	printf "Waiting for vault to be ready..."
 	wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
-	printf "Waiting for nova-compute to be ready..."
-	wait_For_Resource "juju status nova-compute | grep nova-compute/ | awk '{print \$2}'" "juju status nova-compute | grep nova-compute/ | awk '{print \$3}'" "active" "idle"
-	# wait for nova-cloud-controller
-	printf "Waiting for nova-cloud-controller to be ready..."
-	wait_For_Resource "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$2}'" "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$3}'" "active" "idle"
-	# wait for neutron-api
-	printf "Waiting for neutron-api to be ready..."
-	wait_For_Resource "juju status neutron-api | grep neutron-api/ | awk '{print \$2}'" "juju status neutron-api | grep neutron-api/ | awk '{print \$3}'" "active" "idle"
-	# wait for keystone
-	printf "Waiting for keystone to be ready..."
-	wait_For_Resource "juju status keystone | grep keystone/ | awk '{print \$2}'" "juju status keystone | grep keystone/ | awk '{print \$3}'" "active" "idle"
-	
+	#### Vault needs to be initialized
+	wait_for_Message "juju status vault | grep vault/ | grep -q Vault needs to be initialized" "Waiting for vault to be initialized..."
+	# printf "Waiting for nova-compute to be ready..."
+	# wait_For_Resource "juju status nova-compute | grep nova-compute/ | awk '{print \$2}'" "juju status nova-compute | grep nova-compute/ | awk '{print \$3}'" "active" "idle"
+	# # wait for nova-cloud-controller
+	# printf "Waiting for nova-cloud-controller to be ready..."
+	# wait_For_Resource "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$2}'" "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$3}'" "active" "idle"
+	# # wait for neutron-api
+	# printf "Waiting for neutron-api to be ready..."
+	# wait_For_Resource "juju status neutron-api | grep neutron-api/ | awk '{print \$2}'" "juju status neutron-api | grep neutron-api/ | awk '{print \$3}'" "active" "idle"
+	# # wait for keystone
+	# printf "Waiting for keystone to be ready..."
+	# wait_For_Resource "juju status keystone | grep keystone/ | awk '{print \$2}'" "juju status keystone | grep keystone/ | awk '{print \$3}'" "active" "idle"
+
 	return 0
 }
 
