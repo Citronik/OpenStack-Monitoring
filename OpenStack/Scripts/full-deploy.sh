@@ -286,12 +286,20 @@ wait_For_Resource() {
 }
 
 wait_for_vault() {
+	printf "Waiting for vault to be ready..."
 	wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
+	printf "Waiting for nova-compute to be ready..."
 	wait_For_Resource "juju status nova-compute | grep nova-compute/ | awk '{print \$2}'" "juju status nova-compute | grep nova-compute/ | awk '{print \$3}'" "active" "idle"
 	# wait for nova-cloud-controller
+	printf "Waiting for nova-cloud-controller to be ready..."
 	wait_For_Resource "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$2}'" "juju status nova-cloud-controller | grep nova-cloud-controller/ | awk '{print \$3}'" "active" "idle"
 	# wait for neutron-api
+	printf "Waiting for neutron-api to be ready..."
 	wait_For_Resource "juju status neutron-api | grep neutron-api/ | awk '{print \$2}'" "juju status neutron-api | grep neutron-api/ | awk '{print \$3}'" "active" "idle"
+	# wait for keystone
+	printf "Waiting for keystone to be ready..."
+	wait_For_Resource "juju status keystone | grep keystone/ | awk '{print \$2}'" "juju status keystone | grep keystone/ | awk '{print \$3}'" "active" "idle"
+	
 	return 0
 }
 
@@ -403,7 +411,7 @@ cert_Export() {
 
 	#echo "--- Testing exports to initialize OpenStack CLI Client ---"
 	#echo "--- Printing endpoints of OpenStack ---"
-	#openstack endpoint list --interface admin
+	openstack endpoint list --interface admin
 	return 0
 }
 
@@ -430,7 +438,7 @@ create_Model() {
 	check_Switch_Model $@
 }
 
-
+## Fully deploy the OpenStack
 execute_Full_Deploy() {
 	echo "Executing full deploy..."
 	create_Model $@
@@ -490,7 +498,7 @@ init_Openstack() {
 
 
 	#env | grep OS_PASSWORD | awk -F '=' '{print $2}'
-	#openstack endpoint list --interface admin
+	openstack endpoint list --interface admin
 }
 
 destroy_Model() {
