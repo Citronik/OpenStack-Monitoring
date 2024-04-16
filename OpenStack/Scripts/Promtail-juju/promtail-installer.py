@@ -257,8 +257,9 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
         logging.debug(f"AppName: {appName}")
         if appName in LOG_DIRECTORY_MAPPING:
             logPath = LOG_DIRECTORY_MAPPING[appName]
-            logging.debug(f"Log Path: {logPath}")
+            logging.debug(f"App {appName} Log Path: {logPath}")
             if logPath in config:
+                logging.debug(f"App: [{appName}] already configured")
                 continue
             logPath = f"{logPath}*.log"
             config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
