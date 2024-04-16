@@ -250,8 +250,8 @@ services:
     volumes:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
-    expose:
-      - 9180
+    env_file:
+      - ./.env
     ports:
       - 9180:9180
 
