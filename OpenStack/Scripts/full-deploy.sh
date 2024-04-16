@@ -271,7 +271,7 @@ wait_For_Resource() {
 	STATUS=$(eval $STATUS_CMND)
 	excepted_state=$3
 	excepted_status=$4
-	#echo "State: $STATE == $excepted_state Status: $STATUS == $excepted_status"
+	# echo "State: $STATE == $excepted_state Status: $STATUS == $excepted_status"
 	echo -n "Waiting for resource to be ready."
 	while [[ $STATE != $excepted_state || $STATUS != $excepted_status ]]; do
 		echo -n "."
@@ -286,21 +286,20 @@ wait_For_Resource() {
 }
 
 wait_for_Message() {
-	echo $2
+	#echo $2
 	MESSAGE_CMD=$1
 	while ! eval "$MESSAGE_CMD"; do
 		echo -n "."
 		sleep 15
-		CURRENT_MESSAGE=$(eval $MESSAGE_CMD)
 	done
-	printf "DONE! :)"
+	printf "DONE! :) \n"
 }
 
 wait_for_vault() {
 	printf "Waiting for vault to be ready..."
-	wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
+	#wait_For_Resource "juju status | grep vault/ | awk '{print \$2}'" "juju status | grep vault/ | awk '{print \$3}'" "blocked" "idle"
 	#### Vault needs to be initialized
-	wait_for_Message "juju status vault | grep vault/ | grep -q 'Vault needs to be initialized'" "Waiting for vault to be initialized..."
+	wait_for_Message "juju status vault | grep vault/ | grep -q 'Vault needs to be initialized'"
 	# printf "Waiting for nova-compute to be ready..."
 	# wait_For_Resource "juju status nova-compute | grep nova-compute/ | awk '{print \$2}'" "juju status nova-compute | grep nova-compute/ | awk '{print \$3}'" "active" "idle"
 	# # wait for nova-cloud-controller
