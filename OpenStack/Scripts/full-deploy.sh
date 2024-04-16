@@ -423,7 +423,8 @@ cert_Export() {
 
 	#echo "--- Testing exports to initialize OpenStack CLI Client ---"
 	#echo "--- Printing endpoints of OpenStack ---"
-	openstack endpoint list --interface admin
+	#openstack endpoint list --interface admin
+	print_Endpoints
 	return 0
 }
 
