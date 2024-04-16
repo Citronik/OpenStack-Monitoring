@@ -245,6 +245,16 @@ services:
     networks:
       - loki
 
+  ostack-exporter:
+    image: ghcr.io/openstack-exporter/openstack-exporter:latest
+    volumes:
+      - ./config/clouds.yaml:/etc/openstack/clouds.yaml
+    restart: unless-stopped
+    expose:
+      - 9180
+    ports:
+      - 9180:9180
+
   # for testing purposes only, disable in production
   # log-generator:
   #   image: mingrammer/flog
