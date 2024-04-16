@@ -17,7 +17,7 @@ NUMBER_COMMANDS=0
 VAULT_INIT="false"
 VAULT_GEN_KEY="false"
 CERT_COPY="false"
-CERT_EXPORT="false"
+CRED_EXPORT="false"
 FULL_DEPLOY="false"
 INIT_OPENSTACK="false"
 
@@ -62,7 +62,7 @@ debug_print() {
 # 	echo "	--vault-key-thresh <val>		threshold for the keys"
 # 	echo "	--vault-gen-key					generate new keys"
 # 	echo "	--cert-copy						copy the root ca certificate from vault"
-# 	echo "	--cert-export					export the root ca certificate to openstack"
+# 	echo "	--cred-export					export the root ca certificate to openstack"
 # 	echo "	--init-openstack				initialize openstack"
 # 	echo "	--destroy-model <val>			destroy the model"
 # 	echo "	--delete-model-resources		delete all the deployed applications and machines"
@@ -88,7 +88,7 @@ print_help() {
     printf "    %-30s %s\n" "--vault-key-thresh <val>" "threshold for the keys"
     printf "    %-30s %s\n" "--vault-gen-key" "generate new keys"
     printf "    %-30s %s\n" "--cert-copy" "copy the root CA certificate from vault"
-    printf "    %-30s %s\n" "--cert-export" "export the root CA certificate to OpenStack"
+    printf "    %-30s %s\n" "--cred-export" "export the root CA certificate to OpenStack"
     printf "    %-30s %s\n" "--init-openstack" "initialize OpenStack"
     printf "    %-30s %s\n" "--destroy-model <val>" "destroy the model"
     printf "    %-30s %s\n" "--delete-model-resources" "delete all the deployed applications and machines"
@@ -208,8 +208,8 @@ parse_attributes() {
 				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
 				shift 1
 				;;
-			--cert-export)
-				CERT_EXPORT="true"
+			--cred-export)
+				CRED_EXPORT="true"
 				NUMBER_COMMANDS=$((NUMBER_COMMANDS+1))
 				shift 1
 				;;
@@ -396,7 +396,7 @@ cert_Copy() {
 	echo "Root ca certificate copied succesfully! :)"
 }
 
-cert_Export() {
+cred_Export() {
 	echo "Exporting root ca certificate..."
 	KEYSTONE_IP=$(juju run -m ${MODEL_NAME} --unit keystone/leader -- 'network-get --bind-address public')
 	PASSWORD=$(juju run -m ${MODEL_NAME} --unit keystone/leader 'leader-get admin_passwd')
@@ -459,7 +459,7 @@ execute_Full_Deploy() {
 	initialize_vault $@
 	
 	cert_Copy $@
-	cert_Export $@
+	cred_Export $@
 	init_Openstack $@
 	print_Endpoints $@
 	echo "Full deploy completed succesfully! :)"
@@ -560,9 +560,9 @@ final_evaluation_of_the_script() {
 					CERT_COPY="false"
 					#exit 0
 					;;
-				$CERT_EXPORT)
-					cert_Export
-					CERT_EXPORT="false"
+				$CRED_EXPORT)
+					cred_Export
+					CRED_EXPORT="false"
 					#exit 0
 					;;
 				$INIT_OPENSTACK)
