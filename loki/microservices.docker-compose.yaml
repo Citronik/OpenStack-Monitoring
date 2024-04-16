@@ -245,11 +245,12 @@ services:
     networks:
       - loki
 
-  ostack-exporter:
+  openstack-exporter:
     image: ghcr.io/openstack-exporter/openstack-exporter:latest
     volumes:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
+    command: "--config.file=/etc/openstack/clouds.yaml --log.level=debug"
     env_file:
       - ./.env
     ports:
