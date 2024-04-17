@@ -47,7 +47,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.27.0
     ports:
-      - 9090
+      - "9090:9090"
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
       - prometheus:/prometheus
@@ -96,7 +96,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - ./.data/minio:/data
+      - /mnt/minio:/data
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 15s
@@ -250,7 +250,7 @@ services:
     volumes:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
-    command: "--config.file=/etc/openstack/clouds.yaml --log.level=debug"
+    command: "--config.file=/etc/openstack/clouds.yaml --log.level=debug --cloud=KIS"
     env_file:
       - ./.env
     ports:

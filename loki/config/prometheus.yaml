@@ -22,4 +22,4 @@ scrape_configs:
         port: 9080
   - job_name: 'openstack'
     static_configs:
-      - targets: ['ostack-exporter:9180']
+      - targets: ['openstack-exporter:9180']
