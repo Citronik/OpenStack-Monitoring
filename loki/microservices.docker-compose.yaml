@@ -78,7 +78,7 @@ services:
   promtail:
     image: grafana/promtail:2.9.2
     volumes:
-      - ./loki/:/var/log/
+      # - ./loki/:/var/log/ # for testing purposes only, disable in production
       - ./config:/etc/promtail/
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -105,7 +105,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - /mnt/minio:/data
+      - /mnt/loki/minio:/data
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 15s

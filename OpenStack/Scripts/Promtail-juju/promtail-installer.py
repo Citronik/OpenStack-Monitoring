@@ -53,7 +53,7 @@ LOG_DIRECTORY_MAPPING = {
     'cinder-ceph': '/var/log/cinder/',
     'cinder-mysql-router': '/var/log/cinder/',
     'designate': '/var/log/designate/',
-    'designate-bind': '/var/log/designate/',
+#    'designate-bind': '/var/log/designate/', # Not found in the logs
     'glance': '/var/log/glance/',
     'glance-mysql-router': '/var/log/glance/',
     'heat': '/var/log/heat/',
