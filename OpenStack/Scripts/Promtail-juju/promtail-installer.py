@@ -72,7 +72,7 @@ LOG_DIRECTORY_MAPPING = {
     'neutron-mysql-router': '/var/log/neutron/',
     'nova-cloud-controller': '/var/log/nova/',
     'nova-compute': '/var/log/nova/',
-    'nova-mysql-router': '/var/log/mysql/',
+    'nova-mysql-router': '/var/log/nova/',
     'ntp': '/var/log/chrony/',
     'ovn-chassis': '/var/log/ovn/',
     'openstack-dashboard': '/var/log/horizon/',
@@ -272,10 +272,10 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
     return config
 
 def cleanPromtail(machine: JujuMachine) -> bool:
-    logging.info(f"removing old promtail instance...")
     if not REMOVE_PROMTAIL_FIRST:
         return True
             
+    logging.info(f"removing old promtail instance...")
     subprocess.run(["juju", "scp", 'promtail_remove.sh', f"{machine.name}:/tmp/promtail_remove.sh"], check=True)
     remove_command = f"sudo bash /tmp/promtail_remove.sh && rm /tmp/promtail_remove.sh"
     remove_result = subprocess.run(["juju", "run", "--machine", machine.name, remove_command], capture_output=True, text=True)
