@@ -63,6 +63,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      - loki-read
+      - loki-write
+      - loki-backend
+      - promtail
+      - grafana
+      - alertmanager
+      - minio
+      - openstack-exporter
     networks:
       - loki
 
@@ -250,7 +259,7 @@ services:
     volumes:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
-    command: "--os-client-config /etc/openstack/clouds.yaml --log.level=debug --cloud=KIS"
+    command: "--os-client-config /etc/openstack/clouds.yaml --log.level=debug KIS"
     env_file:
       - ./.env
     ports:
