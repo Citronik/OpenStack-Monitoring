@@ -81,8 +81,8 @@ LOG_DIRECTORY_MAPPING = {
     'placement': '/var/log/placement/',
     'placement-mysql-router': '/var/log/placement/',
     'rabbitmq-server': '/var/log/rabbitmq/',
-    'vault': '/var/log/vault/',
-    'vault-mysql-router': '/var/log/vault/',
+    'vault': '/var/log/syslog',
+    'vault-mysql-router': '/var/log/syslog',
 }
 
 
@@ -264,7 +264,9 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
             if logPath in config:
                 logging.debug(f"App: [{appName}] already configured")
                 continue
-            logPath = f"{logPath}*.log"
+            if logPath.endswith("/"):
+                logPath = f"{logPath}*.log"
+                
             config += PROMTAIL_CONFIG_JOB.format(SERVICE_NAME=appName, SERVICE_LOG_PATH=logPath)
 
     logging.info(f"Promtail Config prepared for Machine: {machine.name}")
