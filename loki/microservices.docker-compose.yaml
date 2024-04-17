@@ -250,7 +250,7 @@ services:
     volumes:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
-    command: "--config.file=/etc/openstack/clouds.yaml --log.level=debug --cloud=KIS"
+    command: "--os-client-config /etc/openstack/clouds.yaml --log.level=debug --cloud=KIS"
     env_file:
       - ./.env
     ports:
