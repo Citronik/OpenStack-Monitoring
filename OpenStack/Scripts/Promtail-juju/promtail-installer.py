@@ -164,6 +164,8 @@ def juju_cmnd(command) -> str:
     return jujuResult
 
 def parseMachineInfoFromJSON(parsedMachines, machine):
+    if 'hostname' not in machine[1]:
+        return
     server = JujuMachine(name=machine[0])
     server.hostname = machine[1]['hostname']
     server.ipAddresses = machine[1]['ip-addresses'][0]
