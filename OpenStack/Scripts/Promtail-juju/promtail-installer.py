@@ -6,6 +6,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 ### Set
 devmode=False
+REMOVE_PROMTAIL_FIRST=False
 JUJU_STATUS_COMMAND_JSON = 'juju status --format=json'
 JUJU_STATUS_COMMAND_PLAIN = 'juju status'
 LOKI_URL = 'http://10.254.0.5/loki/api/v1/push'
@@ -269,6 +270,21 @@ def preparePromtailConfig(machine: JujuMachine) -> str:
     logging.info(f"Promtail Config prepared for Machine: {machine.name}")
     logging.debug(f"Promtail Config: {config}")
     return config
+
+def cleanPromtail(machine: JujuMachine) -> bool:
+    logging.info(f"removing old promtail instance...")
+    if not REMOVE_PROMTAIL_FIRST:
+        return True
+            
+    subprocess.run(["juju", "scp", 'promtail_remove.sh', f"{machine.name}:/tmp/promtail_remove.sh"], check=True)
+    remove_command = f"sudo bash /tmp/promtail_remove.sh && rm /tmp/promtail_remove.sh"
+    remove_result = subprocess.run(["juju", "run", "--machine", machine.name, remove_command], capture_output=True, text=True)
+
+    if remove_result.returncode != 0:
+        logging.error(f"Failed to remove promtail: {remove_result.stderr}")
+        return False
+    logging.info(f"Promtail removed successfully on {machine.name}")
+    return True
             
 def installPromtail(machine: JujuMachine) -> bool:
     """ Install Promtail on a machine"""
@@ -282,13 +298,10 @@ def installPromtail(machine: JujuMachine) -> bool:
         with open(config_filename, 'w') as f:
             f.write(preparePromtailConfig(machine))
 
+        cleanPromtail(machine)
+        
         # Copy installation script and config file to the remote machine
         subprocess.run(["juju", "scp", PROMTAIL_SCRIPT_PATH, f"{machine.name}:/tmp/promtail_install.sh"], check=True)
-
-        logging.info(f"removing old promtail instance...")
-        subprocess.run(["juju", "scp", 'promtail_remove.sh', f"{machine.name}:/tmp/promtail_remove.sh"], check=True)
-        remove_command = f"sudo bash /tmp/promtail_remove.sh && rm /tmp/promtail_remove.sh"
-        install_result = subprocess.run(["juju", "run", "--machine", machine.name, remove_command], capture_output=True, text=True)
         # Run the installation script via Juju
         install_command = f"sudo bash /tmp/promtail_install.sh && rm /tmp/promtail_install.sh"
         install_result = subprocess.run(["juju", "run", "--machine", machine.name, install_command], capture_output=True, text=True)
@@ -302,11 +315,11 @@ def installPromtail(machine: JujuMachine) -> bool:
         machine.promtailInstalled = True
         machine.promtailConfigTransferred = True
 
-        if install_result.stderr:
+        if install_result.returncode != 0:
             logging.error(f"Installation failed: {install_result.stderr} machine: {machine.name}")
             machine.promtailInstalled = False
             # return False
-        if install_config.stderr:
+        if install_config.returncode != 0:
             logging.error(f"Failed to copy config file: {install_config.stderr}")
             # return False
 
