@@ -13,11 +13,6 @@ LOKI_URL = 'http://10.254.0.5/loki/api/v1/push'
 
 PROMTAIL_SCRIPT_PATH = "./promtail_install.sh"
 
-# with open(PROMTAIL_SCRIPT_PATH, 'r') as file:
-    # PROMTAIL_INSTALL_SCRIPT = file.read()
-
-#PROMTAIL_INSTALL_SCRIPT = script
-
 PROMTAIL_CONFIG_MAIN = """
 server:
     http_listen_port: 9080
@@ -339,7 +334,7 @@ def checkPromtailPermisson(machine: JujuMachine):
             command += "| awk '{print $4}'"
             result = subprocess.run(["juju", "run", "--machine", machine.name, command], capture_output=True, text=True)
             
-            if result.stderr:
+            if result.returncode != 0:
                 logging.error(f"Failed to check permission: {result.stderr}")
                 return False
             
@@ -348,13 +343,13 @@ def checkPromtailPermisson(machine: JujuMachine):
 
             result = subprocess.run(["juju", "run", "--machine", machine.name, adjustPromtaiPermission], capture_output=True, text=True)
 
-            if result.stderr:
+            if result.returncode != 0:
                 logging.error(f"Failed to adjust permission: {result.stderr}")
                 return False
             
         command = "sudo systemctl restart promtail"
         result = subprocess.run(["juju", "run", "--machine", machine.name, command], capture_output=True, text=True)
-        if result.stderr:
+        if result.returncode != 0:
             logging.error(f"Failed to restart promtail: {result.stderr}")
             return False
         command = "sudo systemctl status promtail"
@@ -382,15 +377,11 @@ if __name__ == "__main__":
 
     ###Parsing Apps using status command
     statusPlain = juju_cmnd(JUJU_STATUS_COMMAND_PLAIN)
-    #logging.debug(f"Status Plain: {statusPlain}")
     parseJujuAppsToMachinesFromStatus(statusPlain, jujuMachines)
-    # for machine in jujuMachines.values():
-    #     print(f"{machine}")
-    ### Prepare Config and install Promtail
     for machine in jujuMachines.values():
         promtailConfig = preparePromtailConfig(machine)
         if promtailConfig:
-            # Save the generated config to a local file temporarily
+            # Save the generated config temporarily to a local file
             with open("promtail-config.yml", 'w') as f:
                 f.write(promtailConfig)
 
