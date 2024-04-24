@@ -7,12 +7,6 @@ volumes:
   prometheus:
   grafana:
   alertmanager-data:
-  loki:
-    driver: local
-    driver_opts:
-      type: none
-      device: /mnt/loki
-      o: bind
 
 services:
   # Since the Loki containers are running as user 10001 and the mounted data volume is owned by root,
@@ -87,7 +81,7 @@ services:
       - ./config:/etc/promtail/
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "11111:9080"
+      - "9080:9080"
     command: -config.file=/etc/promtail/promtail.yaml
     networks:
       - loki
@@ -271,7 +265,7 @@ services:
     restart: unless-stopped
     command: "--os-client-config /etc/openstack/clouds.yaml --log.level=debug KIS"
     ports:
-      - "9080:9180"
+      - "9180:9180"
     env_file:
       - ./.env
 
