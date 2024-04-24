@@ -268,6 +268,8 @@ services:
       - "9180:9180"
     env_file:
       - ./.env
+    networks:
+      - loki
 
   # for testing purposes only, disable in production
   # log-generator:
