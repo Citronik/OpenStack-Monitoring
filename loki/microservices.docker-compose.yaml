@@ -8,6 +8,11 @@ volumes:
   grafana:
   alertmanager-data:
   loki:
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/loki
+      o: bind
 
 services:
   # Since the Loki containers are running as user 10001 and the mounted data volume is owned by root,
@@ -21,7 +26,7 @@ services:
       - "10001:10001"
       - "/loki"
     volumes:
-      - ./loki:/loki
+      - /mnt/loki/data:/loki
     networks:
       - loki
 
@@ -82,7 +87,7 @@ services:
       - ./config:/etc/promtail/
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - 9080
+      - "11111:9080"
     command: -config.file=/etc/promtail/promtail.yaml
     networks:
       - loki
@@ -146,6 +151,7 @@ services:
     image: *lokiImage
     volumes:
       - ./config:/etc/loki/
+      - /mnt/loki/data:/loki
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -156,6 +162,8 @@ services:
       - "7946"
       # uncomment to use interactive debugging
       # - "40000-40002:40000" # makes the replicas available on ports 40000, 40001, 40002
+      # -config.expand-env=true should replace ${ENV_VAR} with the value of the environment variable
+      # but this option is not working, instead using env var directly in the config file
     command: "-config.file=/etc/loki/loki.yaml -config.expand-env=true -target=read -legacy-read-mode=false"
     networks:
       - loki
@@ -178,6 +186,7 @@ services:
     image: *lokiImage
     volumes:
       - ./config:/etc/loki/
+      - /mnt/loki/data:/loki
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -211,6 +220,7 @@ services:
     volumes:
       - ./config:/etc/loki/
       - ./rules:/loki/rules:ro
+      - /mnt/loki/data:/loki
     # only needed for interactive debugging with dlv
     # cap_add:
     #   - SYS_PTRACE
@@ -260,10 +270,10 @@ services:
       - ./config/clouds.yaml:/etc/openstack/clouds.yaml
     restart: unless-stopped
     command: "--os-client-config /etc/openstack/clouds.yaml --log.level=debug KIS"
+    ports:
+      - "9080:9180"
     env_file:
       - ./.env
-    ports:
-      - 9180:9180
 
   # for testing purposes only, disable in production
   # log-generator:

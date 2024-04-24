@@ -20,6 +20,13 @@ scrape_configs:
           - promtail
         type: A
         port: 9080
-  - job_name: 'openstack'
+  # - job_name: 'openstack'
+  #   dns_sd_configs:
+  #     - names:
+  #         - openstack-exporter
+  #       type: A
+  #       port: 9080
+  - job_name: 'openstack-exporter'
     static_configs:
-      - targets: ['openstack-exporter:9180']
+      - targets:
+          - 'openstack-exporter:9180'

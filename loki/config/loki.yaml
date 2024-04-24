@@ -134,4 +134,4 @@ querier:
   query_ingesters_within: 2h
 
 compactor:
-  working_directory: /tmp/compactor
+  working_directory: /loki/compactor
